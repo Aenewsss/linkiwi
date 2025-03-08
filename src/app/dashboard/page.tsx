@@ -53,7 +53,7 @@ export default function Dashboard() {
     const userRef = ref(realtimeDb, `users/${userId}/latestPage`);
     const snapshot = await get(userRef);
 
-    let pageId = snapshot.exists() ? snapshot.val() : uuidv4(); // Se existir, usa o mesmo UUID, senão, cria um novo
+    const pageId = snapshot.exists() ? snapshot.val() : uuidv4(); // Se existir, usa o mesmo UUID, senão, cria um novo
 
     // 📌 Salva o HTML no Firebase usando o UUID como identificador único
     await set(ref(realtimeDb, `publishedPages/${pageId}`), {

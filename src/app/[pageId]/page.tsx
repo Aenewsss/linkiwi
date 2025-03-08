@@ -1,16 +1,36 @@
-import { realtimeDb } from "@/lib/firebase";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ref, get } from "firebase/database";
-import { notFound } from "next/navigation";
+import { realtimeDb } from "@/lib/firebase";
 
-export default async function PublicPage({ params }: { params: { pageId: string } }) {
-  const dbRef = ref(realtimeDb, `publishedPages/${params.pageId}`);
-  const snapshot = await get(dbRef);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function PublicPage({ params }: any) {
+  const [htmlContent, setHtmlContent] = useState<string | null>(null);
+  const router = useRouter();
 
-  if (!snapshot.exists()) return notFound(); // Retorna 404 se não encontrar a página
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const dbRef = ref(realtimeDb, `publishedPages/${params.pageId}`);
+        const snapshot = await get(dbRef);
 
-  const userHtml = snapshot.val().html;
+        if (snapshot.exists()) {
+          setHtmlContent(snapshot.val().html);
+        } else {
+          router.push("/404"); // Redireciona para a página 404 se não encontrar
+        }
+      } catch (error) {
+        console.error("Erro ao buscar a página:", error);
+        router.push("/404"); // Redireciona em caso de erro
+      }
+    };
 
-  return (
-    <div className="h-screen w-screen" dangerouslySetInnerHTML={{ __html: userHtml }} />
-  );
+    fetchData();
+  }, [params.pageId, router]);
+
+  if (htmlContent === null) return <p className="text-center p-10">Carregando...</p>;
+
+  return <div className="h-screen w-screen" dangerouslySetInnerHTML={{ __html: htmlContent }} />;
 }

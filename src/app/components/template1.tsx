@@ -1,6 +1,6 @@
 "use client";
 import { createElement, forwardRef, useState } from "react";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
 import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import SortableItem from "./sortableItem";
 import { AddOutlined, DeleteOutlined, FormatAlignCenterOutlined, FormatAlignLeftOutlined, FormatAlignRightOutlined, FormatBoldOutlined, GitHub, Instagram, LinkedIn, Public, Link as LinkIcon } from "@mui/icons-material"
@@ -24,7 +24,7 @@ interface IElement {
 
 export const iconOptions = { Instagram, LinkedIn, GitHub, Link: LinkIcon, Public }; // Lista de ícones disponíveis
 
-const TemplateMinimalist = forwardRef<HTMLDivElement, {}>((_, ref) => {
+const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
   const [pageBackgroundColor, setPageBackgroundColor] = useState("#f3f4f6"); // 🔹 Estado para cor do fundo da página
   const [cardbackgroundColor, setCardBackgroundColor] = useState("#ffffff"); // 🔹 Estado para cor do fundo do card
 
@@ -49,7 +49,7 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, {}>((_, ref) => {
   const previewTextColor = isDarkColor(pageBackgroundColor) ? "#ffffff" : "#1f2937"; // Branco para fundo escuro, cinza escuro para fundo claro
 
   // 🔹 Atualiza os elementos ao arrastar
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (active.id !== over.id) {
       const oldIndex = elements.findIndex((item) => item.id === active.id);
@@ -353,3 +353,5 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, {}>((_, ref) => {
 })
 
 export default TemplateMinimalist
+
+TemplateMinimalist.displayName = "TemplateMinimalist";
