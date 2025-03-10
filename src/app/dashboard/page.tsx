@@ -108,29 +108,7 @@ export default function Dashboard() {
 
       {/* Escolha de Template */}
       <div className="p-6">
-        <h1 className="text-2xl font-bold">Escolha um Template</h1>
-
-        <div className="flex gap-4 mt-4">
-          <button
-            className={`cursor-pointer px-6 py-3 rounded-md ${selectedTemplate === "minimalist" ? "bg-blue-600 text-white" : "bg-gray-200"
-              }`}
-            onClick={() => setSelectedTemplate("minimalist")}
-          >
-            Minimalista
-          </button>
-          <button
-            className={`cursor-pointer px-6 py-3 rounded-md ${selectedTemplate === "modern" ? "bg-purple-600 text-white" : "bg-gray-200"
-              }`}
-            onClick={() => setSelectedTemplate("modern")}
-          >
-            Moderno
-          </button>
-        </div>
-
-        {/* Renderiza o template escolhido */}
-        <div className="mt-6" ref={previewRef}>
-          {selectedTemplate === "minimalist" ? <TemplateMinimalist ref={previewRef} /> : <TemplateModern />}
-        </div>
+        <TemplateMinimalist ref={previewRef} />
       </div>
 
       {/* Exportação do Site */}

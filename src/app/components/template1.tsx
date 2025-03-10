@@ -3,7 +3,9 @@ import { createElement, forwardRef, useState } from "react";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
 import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import SortableItem from "./sortableItem";
-import { AddOutlined, DeleteOutlined, FormatAlignCenterOutlined, FormatAlignLeftOutlined, FormatAlignRightOutlined, FormatBoldOutlined, GitHub, Instagram, LinkedIn, Public, Link as LinkIcon } from "@mui/icons-material"
+import { AddOutlined, DeleteOutlined, FormatAlignCenterOutlined, FormatAlignLeftOutlined, FormatAlignRightOutlined, FormatBoldOutlined, GitHub, Instagram, LinkedIn, Public, Link as LinkIcon, ArrowRightAltOutlined, ArrowRightAltRounded, Facebook, WhatsApp, Telegram, YouTube, Twitter } from "@mui/icons-material"
+import Image from "next/image";
+import { socialLinks } from "./social-links";
 
 interface IElement {
   id: string
@@ -18,23 +20,39 @@ interface IElement {
   textSize?: string
   bold?: boolean
   align?: string
-  icon?: string
+  icon?: boolean
+  iconBackgroundColor?: string
+  iconColor?: string
   pixel?: string
+  border?: string
 }
 
 export const iconOptions = { Instagram, LinkedIn, GitHub, Link: LinkIcon, Public }; // Lista de ícones disponíveis
 
 const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
-  const [pageBackgroundColor, setPageBackgroundColor] = useState("#f3f4f6"); // 🔹 Estado para cor do fundo da página
-  const [cardbackgroundColor, setCardBackgroundColor] = useState("#ffffff"); // 🔹 Estado para cor do fundo do card
+  const [pageBackgroundColor, setPageBackgroundColor] = useState("#F3FDC4"); // 🔹 Estado para cor do fundo da página
+  const [banner, setBanner] = useState('/top-banner-linkiwi.png');
+  const [icon, setIcon] = useState('/icon-linkiwi.svg');
 
+  const [title, setTitle] = useState('Linkiwi');
+  const [titleColor, setTitleColor] = useState('black');
+
+  const [subtitle, setSubtitle] = useState('Sua página de links profissional em minutos de maneira simples e prática! ');
+  const [subtitleColor, setSubtitleColor] = useState('black');
+
+  const [socialIcons, setSocialIcons] = useState([
+    { icon: 'facebook', 'link': 'https://facebook.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
+    { icon: 'instagram', 'link': 'https://instagram.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
+    { icon: 'whatsapp', 'link': 'https://whatsapp.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
+    { icon: 'telegram', 'link': 'https://telegram.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
+  ]);
   const textSizes = ["text-sm", "text-md", "text-lg", "text-xl", "text-2xl", "text-3xl"];
   const textAlignments = ["text-left", "text-center", "text-right"];
 
   const [elements, setElements] = useState<IElement[]>([
     { id: "1", type: "text", content: "Bem-vindo à minha página personalizada!", textSize: "text-2xl", textColor: "#000000", bold: true, align: "text-left" },
-    { id: "2", type: "link", text: "Meu LinkedIn", url: "https://linkedin.com", bgColor: "#22c55e", textColor: "#ffffff" },
-    { id: "3", type: "link", text: "Meu Instagram", url: "https://instagram.com", bgColor: "#3b82f6", textColor: "#ffffff" },
+    { id: "2", type: "link", text: "Meu LinkedIn", url: "https://linkedin.com", bgColor: "#FFFFFF", textColor: "#00000", border: '#e2e8f0', icon: true, iconBackgroundColor: '#BEF264' },
+    { id: "3", type: "link", text: "Meu Instagram", url: "https://instagram.com", bgColor: "#FFFFFF", textColor: "#00000", border: '#e2e8f0', icon: true, iconBackgroundColor: '#BEF264' },
     { id: "4", type: "tracking", pixel: "" },
   ]);
   const isDarkColor = (color: string) => {
@@ -71,7 +89,7 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
     if (type === "link") {
       setElements([
         ...elements,
-        { id: newId, type: "link", text: "Novo Link", url: "#", bgColor: "#2563eb", textColor: "#ffffff" },
+        { id: newId, type: "link", text: "Novo Link", url: "#", bgColor: "#2563eb", textColor: "#ffffff", icon: false, iconBackgroundColor: '#BEF264', iconColor: '#292D32', border: '#E2E8F0' },
       ]);
     } else if (type === "image") {
       setElements([
@@ -119,18 +137,56 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
           </label>
         </div>
 
-        <div className="mb-6 flex gap-2 justify-center items-center ">
-          <span className="text-gray-600 text-sm">Cor do card</span>
-          <label style={{ backgroundColor: cardbackgroundColor }} className="cursor-pointer rounded-full h-8 w-8 shadow-md border-gray-300 border" htmlFor="pageBgColor">
-            <input
-              id="pageBgColor"
-              type="color"
-              value={cardbackgroundColor}
-              onChange={(e) => setCardBackgroundColor(e.target.value)}
-              className="w-12 h-12 rounded-md border-none cursor-pointer outline-none opacity-0"
-            />
-          </label>
+        {/* 🔹 Seletor do título */}
+        <div className="mb-6 flex flex-col items-center top-2 left-2">
+          <span className="text-gray-600 text-sm mb-2">Título</span>
+
+          <textarea
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full px-2 py-1 border border-gray-300 rounded-md"
+          />
+          <div className="flex gap-1 items-center">
+            <label htmlFor="">Cor</label>
+            <div className="flex gap-4 w-full mt-2 items-center">
+              {/* 🔹 Seletor de cor do texto */}
+              <label style={{ backgroundColor: titleColor }} className="w-8 h-8 rounded-full shadow-md border-gray-300">
+                <input
+                  type="color"
+                  value={titleColor}
+                  onChange={(e) => setTitleColor(e.target.value)}
+                  className="border-none cursor-pointer outline-none opacity-0"
+                />
+              </label>
+            </div>
+          </div>
         </div>
+
+        {/* 🔹 Seletor do subtítulo */}
+        <div className="mb-6 flex flex-col items-center top-2 left-2">
+          <span className="text-gray-600 text-sm mb-2">Subtítulo</span>
+
+          <textarea
+            value={subtitle}
+            onChange={(e) => setSubtitle(e.target.value)}
+            className="w-full px-2 py-1 border border-gray-300 rounded-md"
+          />
+          <div className="flex gap-1 items-center">
+            <label htmlFor="">Cor</label>
+            <div className="flex gap-4 w-full mt-2 items-center">
+              {/* 🔹 Seletor de cor do texto */}
+              <label style={{ backgroundColor: subtitleColor }} className="w-8 h-8 rounded-full shadow-md border-gray-300">
+                <input
+                  type="color"
+                  value={subtitleColor}
+                  onChange={(e) => setSubtitleColor(e.target.value)}
+                  className="border-none cursor-pointer outline-none opacity-0"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+
 
         <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={elements} strategy={verticalListSortingStrategy}>
@@ -177,24 +233,59 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
                             />
                           </label>
                         </label>
+                        <label className="flex gap-1 items-center">
+                          <span className="text-xs text-gray-600">Borda</span>
+                          <label style={{ background: item.border }} className="w-8 h-8 rounded-full cursor-pointer shadow-md" htmlFor="border">
+                            <input
+                              id="border"
+                              type="color"
+                              value={item.border}
+                              onChange={(e) => updateElement(item.id, "border", e.target.value)}
+                              className="w-8 h-8 rounded-md border-none p-0 cursor-pointer outline-none opacity-0 absolute"
+                            />
+                          </label>
+                        </label>
                       </div>
 
                       {/* 🔹 Seletor de Ícone */}
                       <div className="mt-2">
                         <span className="text-xs text-gray-600">Ícone</span>
                         <select
-                          value={item.icon}
-                          onChange={(e) => updateElement(item.id, "icon", e.target.value)}
+                          value={item.icon ? 'yes' : 'no'}
+                          onChange={(e) => updateElement(item.id, "icon", e.target.value != 'no')}
                           className="w-full px-2 py-1 border border-gray-300 rounded-md"
                         >
-                          <option value="">Nenhum</option>
-                          {Object.keys(iconOptions).map((iconKey) => (
-                            <option key={iconKey} value={iconKey}>
-                              {iconKey}
-                            </option>
-                          ))}
+                          <option value="no">Não</option>
+                          <option value="yes">Sim</option>
                         </select>
                       </div>
+
+                      {item.icon && <div className="flex items-center gap-4 mt-2">
+                        <label className="flex gap-1 items-center">
+                          <span className="text-xs text-gray-600">Fundo ícone</span>
+                          <label style={{ background: item.iconBackgroundColor }} className="w-8 h-8 rounded-full cursor-pointer shadow-md" htmlFor="iconBackgroundColor">
+                            <input
+                              id="iconBackgroundColor"
+                              type="color"
+                              value={item.iconBackgroundColor}
+                              onChange={(e) => updateElement(item.id, "iconBackgroundColor", e.target.value)}
+                              className="w-8 h-8 rounded-md border-none p-0 cursor-pointer outline-none opacity-0 absolute"
+                            />
+                          </label>
+                        </label>
+                        <label className="flex gap-1 items-center">
+                          <span className="text-xs text-gray-600">Cor ícone</span>
+                          <label style={{ background: item.iconColor }} className="w-8 h-8 rounded-full cursor-pointer shadow-md" htmlFor="iconColor">
+                            <input
+                              id="iconColor"
+                              type="color"
+                              value={item.iconColor}
+                              onChange={(e) => updateElement(item.id, "iconColor", e.target.value)}
+                              className="w-8 h-8 rounded-md border-none p-0 cursor-pointer outline-none opacity-0 absolute"
+                            />
+                          </label>
+                        </label>
+                      </div>}
 
                     </>
                   )}
@@ -324,19 +415,58 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
 
 
       {/* 👀 Prévia da página (lado direito) */}
-      <div className="w-1/2 flex flex-col" style={{ backgroundColor: pageBackgroundColor }}>
-        <header className="text-center m-4" style={{ color: previewTextColor }}>
+      <div className="w-1/2 flex flex-col  max-h-fit py-4 p-10 bg-slate-200">
+        <header className="text-center" style={{ color: previewTextColor }}>
           <h1 className="text-3xl font-bold">Prévia</h1>
           <p className="text-sm">Veja como sua página ficará</p>
         </header>
-        <div ref={ref} className="flex items-center w-full h-full">
-          <div className="flex items-center justify-center w-full h-full" style={{ backgroundColor: pageBackgroundColor }}>
-            <div style={{ backgroundColor: cardbackgroundColor }} className=" p-6 rounded-lg shadow-lg w-80">
-              <div className="flex flex-col gap-3">
+        <div ref={ref} className="flex items-center w-full max-h-fit mt-10 rounded-lg overflow-hidden" style={{ backgroundColor: pageBackgroundColor }}>
+          <div className="flex flex-col items-center justify-center w-full h-full gap-10" style={{ backgroundColor: pageBackgroundColor }}>
+
+            <div className="flex flex-col gap-10 w-full">
+              <div className="w-full max-h-[200px] relative">
+                <Image unoptimized className="w-full object-cover h-full" width={300} height={300} src={banner} alt="Top banner" />
+                <Image unoptimized className="absolute -bottom-7 left-1/2 -translate-x-1/2" width={60} height={60} src={icon} alt="Top icon" />
+              </div>
+
+
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1">
+                  {title && <h1 style={{ color: titleColor }} className="text-2xl font-semibold text-center">{title}</h1>}
+                  {subtitle && <h2 style={{ color: subtitleColor }} className="text-center">{subtitle}</h2>}
+                </div>
+                {/* {socialIcons.length > 0 && (
+                  <div className="flex flex-wrap gap-4 justify-center">
+                    {socialIcons.map((el, index) => {
+                      const IconComponent = socialLinks[el.icon]; // Obtém o componente do ícone pelo nome
+
+                      if (!IconComponent) return null; // Garante que não haja erro caso o ícone não exista
+
+                      return (
+                        <a
+                          target="_blank"
+                          key={index}
+                          className="p-3 rounded-md flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-all"
+                          style={{ backgroundColor: el.backgroundColor }}
+                          href={el.link}
+                        >
+                          <IconComponent style={{ width: 20, height: 20, fill: el.color, color: el.color }} />
+                        </a>
+                      );
+                    })}
+                  </div>
+                )} */}
+              </div>
+
+              <div className="flex flex-col gap-3 px-10">
                 {elements.map((item) => item.type === "link"
-                  ? <a target="_blank" style={{ backgroundColor: item.bgColor, color: item.textColor }} key={item.id} href={item.url} className="px-6 py-3 rounded-md justify-center items-center shadow-md flex gap-2">
-                    {iconOptions[item.icon] && createElement(iconOptions[item.icon], { style: { width: 20, height: 20, fill: item.textColor } })}
+                  ? <a target="_blank" style={{ backgroundColor: item.bgColor, color: item.textColor, borderColor: item.border }} key={item.id} href={item.url} className="px-6 py-3 rounded-2xl justify-between items-center flex gap-2 border-2 font-medium uppercase transition-all hover:scale-105">
                     {item.text}
+                    {item.icon &&
+                      <div style={{ backgroundColor: item.iconBackgroundColor }} className="rounded-xl px-2 py-1">
+                        <ArrowRightAltRounded style={{ fill: item.iconColor, width: 16, height: 16 }} />
+                      </div>
+                    }
                   </a>
                   : item.type === "image"
                     ? <img key={item.id} src={item.src} className="max-w-48 max-h-48 object-cover" />
@@ -347,8 +477,8 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 })
 
