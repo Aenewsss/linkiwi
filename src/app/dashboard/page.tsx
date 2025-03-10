@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import useAuthStore from "@/store/authStore";
 import { useRouter } from "next/navigation";
 import TemplateMinimalist from "../components/template1";
-import TemplateModern from "../components/template2";
 import { v4 as uuidv4 } from "uuid"
 import { auth, realtimeDb } from "@/lib/firebase";
 import { get, ref, set } from "firebase/database";
@@ -24,7 +23,6 @@ export default function Dashboard() {
   }, [user, router]);
 
   // 🔹 Estado do template escolhido
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [publishing, setPublishing] = useState(false);
 

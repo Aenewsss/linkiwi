@@ -1,11 +1,10 @@
 "use client";
-import { createElement, forwardRef, useState } from "react";
+import { forwardRef, useState } from "react";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
 import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import SortableItem from "./sortableItem";
-import { AddOutlined, DeleteOutlined, FormatAlignCenterOutlined, FormatAlignLeftOutlined, FormatAlignRightOutlined, FormatBoldOutlined, GitHub, Instagram, LinkedIn, Public, Link as LinkIcon, ArrowRightAltOutlined, ArrowRightAltRounded, Facebook, WhatsApp, Telegram, YouTube, Twitter } from "@mui/icons-material"
+import { AddOutlined, DeleteOutlined, FormatAlignCenterOutlined, FormatAlignLeftOutlined, FormatAlignRightOutlined, FormatBoldOutlined, GitHub, Instagram, LinkedIn, Public, Link as LinkIcon, ArrowRightAltRounded, } from "@mui/icons-material"
 import Image from "next/image";
-import { socialLinks } from "./social-links";
 
 interface IElement {
   id: string
@@ -40,12 +39,12 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
   const [subtitle, setSubtitle] = useState('Sua página de links profissional em minutos de maneira simples e prática! ');
   const [subtitleColor, setSubtitleColor] = useState('black');
 
-  const [socialIcons, setSocialIcons] = useState([
-    { icon: 'facebook', 'link': 'https://facebook.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
-    { icon: 'instagram', 'link': 'https://instagram.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
-    { icon: 'whatsapp', 'link': 'https://whatsapp.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
-    { icon: 'telegram', 'link': 'https://telegram.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
-  ]);
+  // const [socialIcons, setSocialIcons] = useState([
+  //   { icon: 'facebook', 'link': 'https://facebook.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
+  //   { icon: 'instagram', 'link': 'https://instagram.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
+  //   { icon: 'whatsapp', 'link': 'https://whatsapp.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
+  //   { icon: 'telegram', 'link': 'https://telegram.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
+  // ]);
   const textSizes = ["text-sm", "text-md", "text-lg", "text-xl", "text-2xl", "text-3xl"];
   const textAlignments = ["text-left", "text-center", "text-right"];
 
