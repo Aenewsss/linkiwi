@@ -5,6 +5,8 @@ import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-ki
 import SortableItem from "./sortableItem";
 import { AddOutlined, DeleteOutlined, FormatAlignCenterOutlined, FormatAlignLeftOutlined, FormatAlignRightOutlined, FormatBoldOutlined, GitHub, Instagram, LinkedIn, Public, Link as LinkIcon, ArrowRightAltRounded, } from "@mui/icons-material"
 import Image from "next/image";
+import { socialLinks } from "../../constant/social-links.const";
+import useTemplateStore from "@/store/templateStore";
 
 interface IElement {
   id: string
@@ -29,9 +31,11 @@ interface IElement {
 export const iconOptions = { Instagram, LinkedIn, GitHub, Link: LinkIcon, Public }; // Lista de ícones disponíveis
 
 const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
+
+  const { banner, setBanner, setBannerFile } = useTemplateStore()
+
   const [pageBackgroundColor, setPageBackgroundColor] = useState("#F3FDC4"); // 🔹 Estado para cor do fundo da página
-  const [banner, setBanner] = useState('/top-banner-linkiwi.png');
-  const [icon, setIcon] = useState('/icon-linkiwi.svg');
+  const [icon, ] = useState('/icon-linkiwi.svg');
 
   const [title, setTitle] = useState('Linkiwi');
   const [titleColor, setTitleColor] = useState('black');
@@ -39,12 +43,16 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
   const [subtitle, setSubtitle] = useState('Sua página de links profissional em minutos de maneira simples e prática! ');
   const [subtitleColor, setSubtitleColor] = useState('black');
 
-  // const [socialIcons, setSocialIcons] = useState([
-  //   { icon: 'facebook', 'link': 'https://facebook.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
-  //   { icon: 'instagram', 'link': 'https://instagram.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
-  //   { icon: 'whatsapp', 'link': 'https://whatsapp.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
-  //   { icon: 'telegram', 'link': 'https://telegram.com', backgroundColor: '#5C9E31', color: '#F3FDC4' },
-  // ]);
+  const [topLinksBackground, setTopLinksBackground] = useState('#5C9E31');
+  const [topLinksColor, setTopLinksColor] = useState('white');
+
+  const [socialIcons, setSocialIcons] = useState([
+    { icon: 'facebook', 'link': 'https://facebook.com', backgroundColor: topLinksBackground, color: topLinksColor },
+    { icon: 'instagram', 'link': 'https://instagram.com', backgroundColor: topLinksBackground, color: topLinksColor },
+    { icon: 'whatsapp', 'link': 'https://whatsapp.com', backgroundColor: topLinksBackground, color: topLinksColor },
+    { icon: 'telegram', 'link': 'https://telegram.com', backgroundColor: topLinksBackground, color: topLinksColor },
+  ]);
+
   const textSizes = ["text-sm", "text-md", "text-lg", "text-xl", "text-2xl", "text-3xl"];
   const textAlignments = ["text-left", "text-center", "text-right"];
 
@@ -113,6 +121,17 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
     setElements((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setBannerFile(file)
+
+    const fileURL = URL.createObjectURL(file); // Cria um link temporário para visualizar a imagem
+    setBanner(fileURL);
+  };
+
+
   return (
     <div className="flex">
       {/* 🎨 Painel de edição (lado esquerdo) */}
@@ -133,6 +152,16 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
               onChange={(e) => setPageBackgroundColor(e.target.value)}
               className="w-12 h-12 rounded-md border-none cursor-pointer outline-none opacity-0"
             />
+          </label>
+        </div>
+
+        {/* 🔹 Seletor do banner */}
+        <div className="mb-6 flex flex-col items-center top-2 left-2">
+          <span className="text-gray-600 text-sm mb-2">Banner Topo</span>
+
+          <label className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg cursor-pointer">
+            Selecionar Imagem
+            <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
           </label>
         </div>
 
@@ -186,7 +215,211 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
           </div>
         </div>
 
+        {/* 🔹 Seletor de links do topo */}
+        <div className="flex flex-col items-center mb-10">
+          <span className="text-gray-600 text-sm mb-2">Links topo</span>
+          {/* onChange={(e) => {
+              const exists = socialIcons.find(el => el.icon == e.target.value)
+              setSocialIcons()
+            }} */}
+          <div className="flex gap-4 flex-wrap">
+            <div className="flex gap-2">
+              <input
+                checked={Boolean(socialIcons.find(el => el.icon == 'facebook'))}
+                onChange={e => setSocialIcons(
+                  e.target.checked
+                    ? socialIcons.concat([{ icon: e.target.value, backgroundColor: '#5C9E31', color: 'white', link: '' }])
+                    : socialIcons.filter(socialIc => socialIc.icon != e.target.value))
 
+                } type="checkbox" value="facebook" /> <label htmlFor="">facebook</label>
+              {Boolean(socialIcons.find(el => el.icon == 'facebook')) && <input className="w-full px-2 py-1 border border-gray-300 rounded-md" type="text"
+                onChange={e => setSocialIcons(socialIcons.map(el => {
+                  return el.icon == 'facebook' ? { ...el, link: e.target.value } : el
+                }))}
+                value={socialIcons.find(el => el.icon == 'facebook')?.link} />}
+            </div>
+            <div className="flex gap-2">
+              <input
+                checked={Boolean(socialIcons.find(el => el.icon == 'instagram'))}
+                onChange={e => setSocialIcons(
+                  e.target.checked
+                    ? socialIcons.concat([{ icon: e.target.value, backgroundColor: '#5C9E31', color: 'white', link: '' }])
+                    : socialIcons.filter(socialIc => socialIc.icon != e.target.value))
+
+                } type="checkbox" value="instagram" /> <label htmlFor="">instagram</label>
+              {Boolean(socialIcons.find(el => el.icon == 'instagram')) && <input className="w-full px-2 py-1 border border-gray-300 rounded-md" type="text"
+                onChange={e => setSocialIcons(socialIcons.map(el => {
+                  return el.icon == 'instagram' ? { ...el, link: e.target.value } : el
+                }))}
+                value={socialIcons.find(el => el.icon == 'instagram')?.link} />}
+            </div>
+            <div className="flex gap-2">
+              <input
+                checked={Boolean(socialIcons.find(el => el.icon == 'whatsapp'))}
+                onChange={e => setSocialIcons(
+                  e.target.checked
+                    ? socialIcons.concat([{ icon: e.target.value, backgroundColor: '#5C9E31', color: 'white', link: '' }])
+                    : socialIcons.filter(socialIc => socialIc.icon != e.target.value))
+
+                } type="checkbox" value="whatsapp" /> <label htmlFor="">whatsapp</label>
+              {Boolean(socialIcons.find(el => el.icon == 'whatsapp')) && <input className="w-full px-2 py-1 border border-gray-300 rounded-md" type="text"
+                onChange={e => setSocialIcons(socialIcons.map(el => {
+                  return el.icon == 'whatsapp' ? { ...el, link: e.target.value } : el
+                }))}
+                value={socialIcons.find(el => el.icon == 'whatsapp')?.link} />}
+            </div>
+            <div className="flex gap-2">
+              <input
+                checked={Boolean(socialIcons.find(el => el.icon == 'telegram'))}
+                onChange={e => setSocialIcons(
+                  e.target.checked
+                    ? socialIcons.concat([{ icon: e.target.value, backgroundColor: '#5C9E31', color: 'white', link: '' }])
+                    : socialIcons.filter(socialIc => socialIc.icon != e.target.value))
+
+                } type="checkbox" value="telegram" /> <label htmlFor="">telegram</label>
+              {Boolean(socialIcons.find(el => el.icon == 'telegram')) && <input className="w-full px-2 py-1 border border-gray-300 rounded-md" type="text"
+                onChange={e => setSocialIcons(socialIcons.map(el => {
+                  return el.icon == 'telegram' ? { ...el, link: e.target.value } : el
+                }))}
+                value={socialIcons.find(el => el.icon == 'telegram')?.link} />}
+            </div>
+            <div className="flex gap-2">
+              <input
+                checked={Boolean(socialIcons.find(el => el.icon == 'tiktok'))}
+                onChange={e => setSocialIcons(
+                  e.target.checked
+                    ? socialIcons.concat([{ icon: e.target.value, backgroundColor: '#5C9E31', color: 'white', link: '' }])
+                    : socialIcons.filter(socialIc => socialIc.icon != e.target.value))
+
+                } type="checkbox" value="tiktok" /> <label htmlFor="">tiktok</label>
+              {Boolean(socialIcons.find(el => el.icon == 'tiktok')) && <input className="w-full px-2 py-1 border border-gray-300 rounded-md" type="text"
+                onChange={e => setSocialIcons(socialIcons.map(el => {
+                  return el.icon == 'tiktok' ? { ...el, link: e.target.value } : el
+                }))}
+                value={socialIcons.find(el => el.icon == 'tiktok')?.link} />}
+            </div>
+            <div className="flex gap-2">
+              <input
+                checked={Boolean(socialIcons.find(el => el.icon == 'youtube'))}
+                onChange={e => setSocialIcons(
+                  e.target.checked
+                    ? socialIcons.concat([{ icon: e.target.value, backgroundColor: '#5C9E31', color: 'white', link: '' }])
+                    : socialIcons.filter(socialIc => socialIc.icon != e.target.value))
+
+                } type="checkbox" value="youtube" /> <label htmlFor="">youtube</label>
+              {Boolean(socialIcons.find(el => el.icon == 'youtube')) && <input className="w-full px-2 py-1 border border-gray-300 rounded-md" type="text"
+                onChange={e => setSocialIcons(socialIcons.map(el => {
+                  return el.icon == 'youtube' ? { ...el, link: e.target.value } : el
+                }))}
+                value={socialIcons.find(el => el.icon == 'youtube')?.link} />}
+            </div>
+            <div className="flex gap-2">
+              <input
+                checked={Boolean(socialIcons.find(el => el.icon == 'twitter'))}
+                onChange={e => setSocialIcons(
+                  e.target.checked
+                    ? socialIcons.concat([{ icon: e.target.value, backgroundColor: '#5C9E31', color: 'white', link: '' }])
+                    : socialIcons.filter(socialIc => socialIc.icon != e.target.value))
+
+                } type="checkbox" value="twitter" /> <label htmlFor="">twitter</label>
+              {Boolean(socialIcons.find(el => el.icon == 'twitter')) && <input className="w-full px-2 py-1 border border-gray-300 rounded-md" type="text"
+                onChange={e => setSocialIcons(socialIcons.map(el => {
+                  return el.icon == 'twitter' ? { ...el, link: e.target.value } : el
+                }))}
+                value={socialIcons.find(el => el.icon == 'twitter')?.link} />}
+            </div>
+            <div className="flex gap-2">
+              <input
+                checked={Boolean(socialIcons.find(el => el.icon == 'linkedin'))}
+                onChange={e => setSocialIcons(
+                  e.target.checked
+                    ? socialIcons.concat([{ icon: e.target.value, backgroundColor: '#5C9E31', color: 'white', link: '' }])
+                    : socialIcons.filter(socialIc => socialIc.icon != e.target.value))
+
+                } type="checkbox" value="linkedin" /> <label htmlFor="">linkedin</label>
+              {Boolean(socialIcons.find(el => el.icon == 'linkedin')) && <input className="w-full px-2 py-1 border border-gray-300 rounded-md" type="text"
+                onChange={e => setSocialIcons(socialIcons.map(el => {
+                  return el.icon == 'linkedin' ? { ...el, link: e.target.value } : el
+                }))}
+                value={socialIcons.find(el => el.icon == 'linkedin')?.link} />}
+            </div>
+            <div className="flex gap-2">
+              <input
+                checked={Boolean(socialIcons.find(el => el.icon == 'amazon'))}
+                onChange={e => setSocialIcons(
+                  e.target.checked
+                    ? socialIcons.concat([{ icon: e.target.value, backgroundColor: '#5C9E31', color: 'white', link: '' }])
+                    : socialIcons.filter(socialIc => socialIc.icon != e.target.value))
+
+                } type="checkbox" value="amazon" /> <label htmlFor="">amazon</label>
+              {Boolean(socialIcons.find(el => el.icon == 'amazon')) && <input className="w-full px-2 py-1 border border-gray-300 rounded-md" type="text"
+                onChange={e => setSocialIcons(socialIcons.map(el => {
+                  return el.icon == 'amazon' ? { ...el, link: e.target.value } : el
+                }))}
+                value={socialIcons.find(el => el.icon == 'amazon')?.link} />}
+            </div>
+            <div className="flex gap-2">
+              <input
+                checked={Boolean(socialIcons.find(el => el.icon == 'shopee'))}
+                onChange={e => setSocialIcons(
+                  e.target.checked
+                    ? socialIcons.concat([{ icon: e.target.value, backgroundColor: '#5C9E31', color: 'white', link: '' }])
+                    : socialIcons.filter(socialIc => socialIc.icon != e.target.value))
+
+                } type="checkbox" value="shopee" /> <label htmlFor="">shopee</label>
+              {Boolean(socialIcons.find(el => el.icon == 'shopee')) && <input className="w-full px-2 py-1 border border-gray-300 rounded-md" type="text"
+                onChange={e => setSocialIcons(socialIcons.map(el => {
+                  return el.icon == 'shopee' ? { ...el, link: e.target.value } : el
+                }))}
+                value={socialIcons.find(el => el.icon == 'shopee')?.link} />}
+            </div>
+            <div className="flex gap-2">
+              <input
+                checked={Boolean(socialIcons.find(el => el.icon == 'aliexpress'))}
+                onChange={e => setSocialIcons(
+                  e.target.checked
+                    ? socialIcons.concat([{ icon: e.target.value, backgroundColor: '#5C9E31', color: 'white', link: '' }])
+                    : socialIcons.filter(socialIc => socialIc.icon != e.target.value))
+
+                } type="checkbox" value="aliexpress" /> <label htmlFor="">aliexpress</label>
+              {Boolean(socialIcons.find(el => el.icon == 'aliexpress')) && <input className="w-full px-2 py-1 border border-gray-300 rounded-md" type="text"
+                onChange={e => setSocialIcons(socialIcons.map(el => {
+                  return el.icon == 'aliexpress' ? { ...el, link: e.target.value } : el
+                }))}
+                value={socialIcons.find(el => el.icon == 'aliexpress')?.link} />}
+            </div>
+          </div>
+          <div className="flex justify-between mt-4">
+            <div className="flex gap-1 items-center">
+              <label htmlFor="">Fundo dos links</label>
+              <div className="flex gap-4 w-full mt-2 items-center">
+                {/* 🔹 Seletor de cor do texto */}
+                <label style={{ backgroundColor: topLinksBackground }} className="w-8 h-8 rounded-full shadow-md border-gray-300">
+                  <input
+                    type="color"
+                    value={topLinksBackground}
+                    onChange={(e) => setTopLinksBackground(e.target.value)}
+                    className="border-none cursor-pointer outline-none opacity-0"
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="flex gap-1 items-center">
+              <label htmlFor="">Cor dos links</label>
+              <div className="flex gap-4 w-full mt-2 items-center">
+                {/* 🔹 Seletor de cor do texto */}
+                <label style={{ backgroundColor: topLinksColor }} className="w-8 h-8 rounded-full shadow-md border-gray-300">
+                  <input
+                    type="color"
+                    value={topLinksColor}
+                    onChange={(e) => setTopLinksColor(e.target.value)}
+                    className="border-none cursor-pointer outline-none opacity-0"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
         <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={elements} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col gap-4">
@@ -420,7 +653,7 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
           <p className="text-sm">Veja como sua página ficará</p>
         </header>
         <div ref={ref} className="flex items-center w-full max-h-fit mt-10 rounded-lg overflow-hidden" style={{ backgroundColor: pageBackgroundColor }}>
-          <div className="flex flex-col items-center justify-center w-full h-full gap-10" style={{ backgroundColor: pageBackgroundColor }}>
+          <div className="flex flex-col items-center justify-start w-full h-full gap-10" style={{ backgroundColor: pageBackgroundColor }}>
 
             <div className="flex flex-col gap-10 w-full">
               <div className="w-full max-h-[200px] relative">
@@ -434,7 +667,7 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
                   {title && <h1 style={{ color: titleColor }} className="text-2xl font-semibold text-center">{title}</h1>}
                   {subtitle && <h2 style={{ color: subtitleColor }} className="text-center">{subtitle}</h2>}
                 </div>
-                {/* {socialIcons.length > 0 && (
+                {socialIcons.length > 0 && (
                   <div className="flex flex-wrap gap-4 justify-center">
                     {socialIcons.map((el, index) => {
                       const IconComponent = socialLinks[el.icon]; // Obtém o componente do ícone pelo nome
@@ -446,15 +679,15 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
                           target="_blank"
                           key={index}
                           className="p-3 rounded-md flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-all"
-                          style={{ backgroundColor: el.backgroundColor }}
+                          style={{ backgroundColor: topLinksBackground }}
                           href={el.link}
                         >
-                          <IconComponent style={{ width: 20, height: 20, fill: el.color, color: el.color }} />
+                          <IconComponent style={{ width: 20, height: 20, fill: topLinksColor, color: topLinksColor }} />
                         </a>
                       );
                     })}
                   </div>
-                )} */}
+                )}
               </div>
 
               <div className="flex flex-col gap-3 px-10">
@@ -462,7 +695,7 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
                   ? <a target="_blank" style={{ backgroundColor: item.bgColor, color: item.textColor, borderColor: item.border }} key={item.id} href={item.url} className="px-6 py-3 rounded-2xl justify-between items-center flex gap-2 border-2 font-medium uppercase transition-all hover:scale-105">
                     {item.text}
                     {item.icon &&
-                      <div style={{ backgroundColor: item.iconBackgroundColor }} className="rounded-xl px-2 py-1">
+                      <div style={{ backgroundColor: item.iconBackgroundColor }} className="rounded-xl p-2 flex items-center">
                         <ArrowRightAltRounded style={{ fill: item.iconColor, width: 16, height: 16 }} />
                       </div>
                     }

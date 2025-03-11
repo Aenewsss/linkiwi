@@ -7,9 +7,13 @@ import TemplateMinimalist from "../components/template1";
 import { v4 as uuidv4 } from "uuid"
 import { auth, realtimeDb } from "@/lib/firebase";
 import { get, ref, set } from "firebase/database";
+import { storage } from "@/lib/firebase";
+import { ref as firebaseRef, getDownloadURL, uploadBytesResumable } from "firebase/storage"
+import useTemplateStore from "@/store/templateStore";
 
 export default function Dashboard() {
   const { user, logout } = useAuthStore();
+  const { bannerFile, setBanner } = useTemplateStore();
   const router = useRouter();
 
   // 🔹 Referência para capturar o HTML gerado
@@ -26,14 +30,49 @@ export default function Dashboard() {
   const [exporting, setExporting] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
+  const handleFileUpload = async () => {
+    if (!bannerFile) return;
+
+    const userId = auth.currentUser.uid
+
+    const storageRef = firebaseRef(storage, `banners/${userId}/${(bannerFile as File).name}`);
+    const uploadTask = uploadBytesResumable(storageRef, bannerFile as File);
+
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log(`Upload em andamento: ${progress}%`);
+      },
+      (error) => {
+        console.error("Erro ao enviar imagem:", error);
+      },
+      async () => {
+        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        setBanner(downloadURL); // Atualiza o estado com a URL da imagem
+      }
+    );
+  };
+
   const publishSite = async () => {
-    console.log(auth.currentUser)
-    if (!previewRef.current || !auth?.currentUser?.uid) return;
 
-    setPublishing(true);
+    try {
 
-    // 🔹 Captura SOMENTE o HTML do preview
-    const htmlContent = `<!DOCTYPE html>
+
+
+      if (bannerFile) handleFileUpload()
+
+      setPublishing(true);
+
+      setTimeout(() => {
+        console.log('awaiting')
+      }, 1000);
+
+      console.log(auth.currentUser)
+      if (!previewRef.current || !auth?.currentUser?.uid) return;
+
+      // 🔹 Captura SOMENTE o HTML do preview
+      const htmlContent = `<!DOCTYPE html>
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
@@ -46,24 +85,30 @@ export default function Dashboard() {
 </body>
 </html>`;
 
-    const userId = auth.currentUser.uid
+      const userId = auth.currentUser.uid
 
-    const userRef = ref(realtimeDb, `users/${userId}/latestPage`);
-    const snapshot = await get(userRef);
+      const userRef = ref(realtimeDb, `users/${userId}/latestPage`);
+      const snapshot = await get(userRef);
 
-    const pageId = snapshot.exists() ? snapshot.val() : uuidv4(); // Se existir, usa o mesmo UUID, senão, cria um novo
+      const pageId = snapshot.exists() ? snapshot.val() : uuidv4(); // Se existir, usa o mesmo UUID, senão, cria um novo
 
-    // 📌 Salva o HTML no Firebase usando o UUID como identificador único
-    await set(ref(realtimeDb, `publishedPages/${pageId}`), {
-      html: htmlContent,
-      userId,
-      timestamp: Date.now(),
-    });
+      // 📌 Salva o HTML no Firebase usando o UUID como identificador único
+      await set(ref(realtimeDb, `publishedPages/${pageId}`), {
+        html: htmlContent,
+        userId,
+        timestamp: Date.now(),
+      });
 
-    // 📌 Atualiza o UUID salvo para esse usuário
-    await set(userRef, pageId);
+      // 📌 Atualiza o UUID salvo para esse usuário
+      await set(userRef, pageId);
 
-    alert(`Site publicado - Id do site: ${pageId}`)
+      alert(`Site publicado - Id do site: ${pageId}`)
+
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setPublishing(false)
+    }
   }
 
   const exportSite = () => {
