@@ -10,6 +10,8 @@ import { get, ref, set } from "firebase/database";
 import { storage } from "@/lib/firebase";
 import { ref as firebaseRef, getDownloadURL, uploadBytesResumable } from "firebase/storage"
 import useTemplateStore from "@/store/templateStore";
+import { FaCopy, FaExternalLinkAlt } from "react-icons/fa"; // Import the copy icon
+import { toast } from 'react-toastify';
 
 export default function Home() {
   const { user, logout } = useAuthStore();
@@ -26,7 +28,7 @@ export default function Home() {
       router.push("/login");
     }
   }, [user, router]);
-  
+
   // 🔹 Estado do template escolhido
   const [exporting, setExporting] = useState(false);
   const [publishing, setPublishing] = useState(false);
@@ -55,21 +57,20 @@ export default function Home() {
     );
   };
 
+  const [modalOpen, setModalOpen] = useState(false);
+  const [publishedPageUrl, setPublishedPageUrl] = useState("");
+
   const publishSite = async () => {
-
     try {
-
-
-
-      if (bannerFile) handleFileUpload()
+      if (bannerFile) handleFileUpload();
 
       setPublishing(true);
 
       setTimeout(() => {
-        console.log('awaiting')
+        console.log('awaiting');
       }, 1000);
 
-      console.log(auth.currentUser)
+      console.log(auth.currentUser);
       if (!previewRef.current || !auth?.currentUser?.uid) return;
 
       // 🔹 Captura SOMENTE o HTML do preview
@@ -86,7 +87,7 @@ export default function Home() {
 </body>
 </html>`;
 
-      const userId = auth.currentUser.uid
+      const userId = auth.currentUser.uid;
 
       const userRef = ref(realtimeDb, `users/${userId}/latestPage`);
       const snapshot = await get(userRef);
@@ -103,14 +104,70 @@ export default function Home() {
       // 📌 Atualiza o UUID salvo para esse usuário
       await set(userRef, pageId);
 
-      alert(`Site publicado - Id do site: ${pageId}`)
+      const pageUrl = `${window.location.origin}/${pageId}`;
+      setPublishedPageUrl(pageUrl);
+      setModalOpen(true);
 
     } catch (e) {
-      console.error(e)
+      console.error(e);
     } finally {
-      setPublishing(false)
+      setPublishing(false);
     }
-  }
+  };
+
+  const handleCopyUrl = async () => {
+    if (!publishedPageUrl) {
+      const userRef = ref(realtimeDb, `users/${auth.currentUser.uid}/latestPage`);
+      const snapshot = await get(userRef);
+
+      const pageId = snapshot.exists() ? snapshot.val() : null
+
+      if (!pageId) {
+        toast.error("Failed to retrieve page ID.");
+        return;
+      }
+
+      toast.success("URL copiada para a área de transferência!");
+      return navigator.clipboard.writeText(`${window.location.origin}/${pageId}`);
+    }
+    navigator.clipboard.writeText(publishedPageUrl);
+    toast.success("URL copiada para a área de transferência!");
+  };
+
+  const handleAccessPage = async () => {
+    const userRef = ref(realtimeDb, `users/${auth.currentUser.uid}/latestPage`);
+    const snapshot = await get(userRef);
+
+    const pageId = snapshot.exists() ? snapshot.val() : null
+
+    if (!pageId) {
+      toast.error("Failed to retrieve page ID.");
+      return;
+    }
+
+    return window.open(`${window.location.origin}/${pageId}`, "_blank");
+  };
+
+  const Modal = ({ isOpen, onClose }) => {
+    if (!isOpen) return null;
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white p-6 rounded shadow-lg">
+          <h2 className="text-xl font-bold mb-4">Site Publicado!</h2>
+          <p className="mb-4">URL do site: {publishedPageUrl}</p>
+          <button onClick={handleCopyUrl} className="mr-2 bg-blue-500 text-white px-4 py-2 rounded">
+            Copiar URL
+          </button>
+          <button onClick={handleAccessPage} className="mr-2 bg-green-500 text-white px-4 py-2 rounded">
+            Acessar
+          </button>
+          <button onClick={onClose} className="bg-red-500 text-white px-4 py-2 rounded">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   const exportSite = () => {
     if (!previewRef.current) return;
@@ -146,11 +203,19 @@ export default function Home() {
     setExporting(false);
   };
 
-  if(!user) return null
-  
+  if (!user) return null
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold">Bem-vindo, {user?.displayName}!</h1>
+      <div className="flex items-center mt-2">
+        <p className="font-medium mr-2">Copiar URL do site</p>
+        <FaCopy onClick={handleCopyUrl} className="text-green-900 cursor-pointer" />
+      </div>
+      <div className="flex items-center mt-2">
+        <p className="font-medium mr-2">Abrir site</p>
+        <FaExternalLinkAlt onClick={handleAccessPage} className="text-green-900 cursor-pointer" />
+      </div>
 
       {/* Escolha de Template */}
       <div className="p-6">
@@ -188,6 +253,8 @@ export default function Home() {
       <button onClick={logout} className="mt-6 px-6 py-3 bg-red-600 text-white rounded-md cursor-pointer">
         Logout
       </button>
+
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }
