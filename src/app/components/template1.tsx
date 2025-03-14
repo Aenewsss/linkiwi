@@ -35,7 +35,7 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
   const { banner, setBanner, setBannerFile } = useTemplateStore()
 
   const [pageBackgroundColor, setPageBackgroundColor] = useState("#F3FDC4"); // 🔹 Estado para cor do fundo da página
-  const [icon, ] = useState('/icon-linkiwi.svg');
+  const [icon,] = useState('/icon-linkiwi.svg');
 
   const [title, setTitle] = useState('Linkiwi');
   const [titleColor, setTitleColor] = useState('black');
@@ -53,7 +53,7 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
     { icon: 'telegram', 'link': 'https://telegram.com', backgroundColor: topLinksBackground, color: topLinksColor },
   ]);
 
-  const textSizes = ["text-sm", "text-md", "text-lg", "text-xl", "text-2xl", "text-3xl"];
+  const textSizes = [{ value: "text-sm", label: 'Pequeno' }, { value: "text-md", label: 'Médio' }, { value: "text-lg", label: 'Grande' }, { value: "text-xl", label: 'Muito Grande' }, { value: "text-2xl", label: 'Maior ainda' }, { value: "text-3xl", label: 'Super Grande' }];
   const textAlignments = ["text-left", "text-center", "text-right"];
 
   const [elements, setElements] = useState<IElement[]>([
@@ -156,8 +156,8 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
         </div>
 
         {/* 🔹 Seletor do banner */}
-        <div className="mb-6 flex flex-col items-center top-2 left-2">
-          <span className="text-gray-600 text-sm mb-2">Banner Topo</span>
+        <div className="mb-10 flex flex-col items-center">
+          <span className="text-gray-600 text-lg font-semibold">Banner Topo</span>
 
           <label className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg cursor-pointer">
             Selecionar Imagem
@@ -166,8 +166,8 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
         </div>
 
         {/* 🔹 Seletor do título */}
-        <div className="mb-6 flex flex-col items-center top-2 left-2">
-          <span className="text-gray-600 text-sm mb-2">Título</span>
+        <div className="mb-16 flex flex-col items-center">
+          <span className="text-gray-600 text-lg font-semibold">Título</span>
 
           <textarea
             value={title}
@@ -191,8 +191,8 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
         </div>
 
         {/* 🔹 Seletor do subtítulo */}
-        <div className="mb-6 flex flex-col items-center top-2 left-2">
-          <span className="text-gray-600 text-sm mb-2">Subtítulo</span>
+        <div className="mb-16 flex flex-col items-center">
+          <span className="text-gray-600 text-lg font-semibold">Subtítulo</span>
 
           <textarea
             value={subtitle}
@@ -216,13 +216,13 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
         </div>
 
         {/* 🔹 Seletor de links do topo */}
-        <div className="flex flex-col items-center mb-10">
-          <span className="text-gray-600 text-sm mb-2">Links topo</span>
+        <div className="flex flex-col items-center mb-16">
+          <span className="text-gray-600 text-lg font-semibold">Links topo</span>
           {/* onChange={(e) => {
               const exists = socialIcons.find(el => el.icon == e.target.value)
               setSocialIcons()
             }} */}
-          <div className="flex gap-4 flex-wrap">
+          <div className="flex gap-4 flex-wrap mt-4">
             <div className="flex gap-2">
               <input
                 checked={Boolean(socialIcons.find(el => el.icon == 'facebook'))}
@@ -544,8 +544,8 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
                         className="w-full px-2 py-1 border border-gray-300 rounded-md mt-2"
                       >
                         {textSizes.map((size) => (
-                          <option key={size} value={size}>
-                            {size}
+                          <option key={size.value} value={size.value}>
+                            {size.label}
                           </option>
                         ))}
                       </select>
@@ -647,68 +647,72 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
 
 
       {/* 👀 Prévia da página (lado direito) */}
-      <div className="w-1/2 flex flex-col  max-h-fit py-4 p-10 bg-slate-200">
+      <div className="w-1/2 flex flex-col py-4 pb-10 px-6 items-center">
         <header className="text-center" style={{ color: previewTextColor }}>
           <h1 className="text-3xl font-bold">Prévia</h1>
           <p className="text-sm">Veja como sua página ficará</p>
         </header>
-        <div ref={ref} className="flex items-center w-full max-h-fit mt-10 rounded-lg overflow-hidden" style={{ backgroundColor: pageBackgroundColor }}>
-          <div className="flex flex-col items-center justify-start w-full h-full gap-10" style={{ backgroundColor: pageBackgroundColor }}>
-
-            <div className="flex flex-col gap-10 w-full">
-              <div className="w-full max-h-[200px] relative">
-                <Image unoptimized className="w-full object-cover h-full" width={300} height={300} src={banner} alt="Top banner" />
-                <Image unoptimized className="absolute -bottom-7 left-1/2 -translate-x-1/2" width={60} height={60} src={icon} alt="Top icon" />
-              </div>
-
-
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1">
-                  {title && <h1 style={{ color: titleColor }} className="text-2xl font-semibold text-center">{title}</h1>}
-                  {subtitle && <h2 style={{ color: subtitleColor }} className="text-center">{subtitle}</h2>}
+        <div className="sticky top-10">
+          <Image unoptimized className="pointer-events-none absolute z-20 top-8 left-1/2 -translate-x-1/2" width={420} height={800} src="/mockup1.png" alt="mockup 1" />
+          <Image unoptimized className="pointer-events-none absolute z-20 top-8 left-1/2 -translate-x-1/2" width={420} height={800} src="/mockup2.png" alt="mockup 2" />
+          <div ref={ref} className="relative rounded-[48px] flex items-center w-[380px] h-[750px] mt-10 overflow-hidden" style={{ backgroundColor: pageBackgroundColor }}>
+            <div className="flex flex-col items-center justify-start w-full h-full gap-10 pb-4 ps-2 pe-6" style={{ backgroundColor: pageBackgroundColor }}>
+              <div className="flex flex-col gap-10 w-full relative  overflow-y-auto">
+                <div className="w-full max-h-[200px] relative">
+                  <Image unoptimized className="w-full object-cover h-full" width={300} height={300} src={banner} alt="Top banner" />
+                  <Image unoptimized className="absolute -bottom-7 left-1/2 -translate-x-1/2" width={60} height={60} src={icon} alt="Top icon" />
                 </div>
-                {socialIcons.length > 0 && (
-                  <div className="flex flex-wrap gap-4 justify-center">
-                    {socialIcons.map((el, index) => {
-                      const IconComponent = socialLinks[el.icon]; // Obtém o componente do ícone pelo nome
 
-                      if (!IconComponent) return null; // Garante que não haja erro caso o ícone não exista
 
-                      return (
-                        <a
-                          target="_blank"
-                          key={index}
-                          className="p-3 rounded-md flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-all"
-                          style={{ backgroundColor: topLinksBackground }}
-                          href={el.link}
-                        >
-                          <IconComponent style={{ width: 20, height: 20, fill: topLinksColor, color: topLinksColor }} />
-                        </a>
-                      );
-                    })}
+                <div className="flex flex-col gap-4 px-4 ">
+                  <div className="flex flex-col gap-1">
+                    {title && <h1 style={{ color: titleColor }} className="text-2xl font-semibold text-center">{title}</h1>}
+                    {subtitle && <h2 style={{ color: subtitleColor }} className="text-center">{subtitle}</h2>}
                   </div>
-                )}
-              </div>
+                  {socialIcons.length > 0 && (
+                    <div className="flex flex-wrap gap-4 justify-center max-w-[300px] mx-auto">
+                      {socialIcons.map((el, index) => {
+                        const IconComponent = socialLinks[el.icon]; // Obtém o componente do ícone pelo nome
 
-              <div className="flex flex-col gap-3 px-10">
-                {elements.map((item) => item.type === "link"
-                  ? <a target="_blank" style={{ backgroundColor: item.bgColor, color: item.textColor, borderColor: item.border }} key={item.id} href={item.url} className="px-6 py-3 rounded-2xl justify-between items-center flex gap-2 border-2 font-medium uppercase transition-all hover:scale-105">
-                    {item.text}
-                    {item.icon &&
-                      <div style={{ backgroundColor: item.iconBackgroundColor }} className="rounded-xl p-2 flex items-center">
-                        <ArrowRightAltRounded style={{ fill: item.iconColor, width: 16, height: 16 }} />
-                      </div>
-                    }
-                  </a>
-                  : item.type === "image"
-                    ? <img key={item.id} src={item.src} className="max-w-48 max-h-48 object-cover" />
-                    : item.type === "tracking"
-                      ? <div key={item.id} dangerouslySetInnerHTML={{ __html: item.pixel }} />
-                      : <p className={`${item.textSize} ${item.bold ? "font-bold" : ""} ${item.align} mb-0`} style={{ color: item.textColor }} key={item.id}>{item.content}</p>)}
+                        if (!IconComponent) return null; // Garante que não haja erro caso o ícone não exista
+
+                        return (
+                          <a
+                            target="_blank"
+                            key={index}
+                            className="p-3 rounded-md flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-all"
+                            style={{ backgroundColor: topLinksBackground }}
+                            href={el.link}
+                          >
+                            <IconComponent style={{ width: 20, height: 20, fill: topLinksColor, color: topLinksColor }} />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-3 px-10">
+                  {elements.map((item) => item.type === "link"
+                    ? <a target="_blank" style={{ backgroundColor: item.bgColor, color: item.textColor, borderColor: item.border }} key={item.id} href={item.url} className="px-6 py-3 rounded-2xl justify-between items-center flex gap-2 border-2 font-medium uppercase transition-all hover:scale-105">
+                      {item.text}
+                      {item.icon &&
+                        <div style={{ backgroundColor: item.iconBackgroundColor }} className="rounded-xl p-2 flex items-center">
+                          <ArrowRightAltRounded style={{ fill: item.iconColor, width: 16, height: 16 }} />
+                        </div>
+                      }
+                    </a>
+                    : item.type === "image"
+                      ? <img key={item.id} src={item.src} className="max-w-48 max-h-48 object-cover" />
+                      : item.type === "tracking"
+                        ? <div key={item.id} dangerouslySetInnerHTML={{ __html: item.pixel }} />
+                        : <p className={`${item.textSize} ${item.bold ? "font-bold" : ""} ${item.align} mb-0`} style={{ color: item.textColor }} key={item.id}>{item.content}</p>)}
+                </div>
               </div>
             </div>
           </div>
         </div>
+
       </div >
     </div >
   );
