@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import TemplateMinimalist from "./components/template1";
 import { v4 as uuidv4 } from "uuid"
 import { auth, realtimeDb } from "@/lib/firebase";
-import { get, ref, set } from "firebase/database";
+import { get, ref, update } from "firebase/database";
 import { storage } from "@/lib/firebase";
 import { ref as firebaseRef, getDownloadURL, uploadBytesResumable } from "firebase/storage"
 import useTemplateStore from "@/store/templateStore";
@@ -14,11 +14,11 @@ import { FaCopy, FaExternalLinkAlt } from "react-icons/fa"; // Import the copy i
 import { toast } from 'react-toastify';
 
 export default function Home() {
-  const { user, logout } = useAuthStore();
-  const { bannerFile, setBanner } = useTemplateStore();
+  const { user, logout, setPlanType, planType } = useAuthStore();
+  const { bannerFile, setBanner, iconFile, setIcon } = useTemplateStore();
   const router = useRouter();
 
-
+  const [views, setViews] = useState(0);
   // 🔹 Referência para capturar o HTML gerado
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -26,6 +26,22 @@ export default function Home() {
   useEffect(() => {
     if (!user) {
       router.push("/login");
+    } else {
+      const userPlanRef = ref(realtimeDb, `users/${auth.currentUser.uid}`);
+      get(userPlanRef).then((snapshot) => {
+        const planType = snapshot.val()?.planType;
+        
+        setPlanType(planType);
+      })
+
+      const userRef = ref(realtimeDb, `users/${auth.currentUser.uid}/latestPage`);
+      get(userRef).then((snapshot) => {
+        const pageId = snapshot.exists() ? snapshot.val() : uuidv4();
+
+        get(ref(realtimeDb, `publishedPages/${pageId}`)).then((snapshot) => {
+          setViews(snapshot.val()?.views || 0);
+        });
+      });
     }
   }, [user, router]);
 
@@ -34,28 +50,49 @@ export default function Home() {
   const [publishing, setPublishing] = useState(false);
 
   const handleFileUpload = async () => {
-    if (!bannerFile) return;
+    if (!bannerFile && !iconFile) return;
 
     const userId = auth.currentUser.uid
+    if (bannerFile) {
+      const storageRef = firebaseRef(storage, `banners/${userId}/${(bannerFile as File).name}`);
+      const uploadTask = uploadBytesResumable(storageRef, bannerFile as File);
 
-    const storageRef = firebaseRef(storage, `banners/${userId}/${(bannerFile as File).name}`);
-    const uploadTask = uploadBytesResumable(storageRef, bannerFile as File);
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(`Upload em andamento: ${progress}%`);
+        },
+        (error) => {
+          console.error("Erro ao enviar imagem:", error);
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          setBanner(downloadURL); // Atualiza o estado com a URL da imagem
+        }
+      );
+    }
 
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        console.log(`Upload em andamento: ${progress}%`);
-      },
-      (error) => {
-        console.error("Erro ao enviar imagem:", error);
-      },
-      async () => {
-        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-        setBanner(downloadURL); // Atualiza o estado com a URL da imagem
-      }
-    );
-  };
+    if (iconFile) {
+      const storageRef = firebaseRef(storage, `icons/${userId}/${(iconFile as File).name}`);
+      const uploadTask = uploadBytesResumable(storageRef, iconFile as File);
+
+      uploadTask.on(
+        "state_changed",
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(`Upload em andamento: ${progress}%`);
+        },
+        (error) => {
+          console.error("Erro ao enviar ícone:", error);
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          setIcon(downloadURL); // Atualiza o estado com a URL da imagem
+        }
+      );
+    };
+  }
 
   const [modalOpen, setModalOpen] = useState(false);
   const [publishedPageUrl, setPublishedPageUrl] = useState("");
@@ -95,14 +132,14 @@ export default function Home() {
       const pageId = snapshot.exists() ? snapshot.val() : uuidv4(); // Se existir, usa o mesmo UUID, senão, cria um novo
 
       // 📌 Salva o HTML no Firebase usando o UUID como identificador único
-      await set(ref(realtimeDb, `publishedPages/${pageId}`), {
+      await update(ref(realtimeDb, `publishedPages/${pageId}`), {
         html: htmlContent,
         userId,
         timestamp: Date.now(),
       });
 
       // 📌 Atualiza o UUID salvo para esse usuário
-      await set(userRef, pageId);
+      await update(userRef, pageId);
 
       const pageUrl = `${window.location.origin}/${pageId}`;
       setPublishedPageUrl(pageUrl);
@@ -114,7 +151,6 @@ export default function Home() {
       setPublishing(false);
     }
   };
-
   const handleCopyUrl = async () => {
     if (!publishedPageUrl) {
       const userRef = ref(realtimeDb, `users/${auth.currentUser.uid}/latestPage`);
@@ -207,7 +243,10 @@ export default function Home() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold">Bem-vindo, {user?.displayName}!</h1>
+      <div className="flex justify-between">
+        <h1 className="text-2xl font-bold">Bem-vindo, {user?.displayName}!</h1>
+        {planType !== "free" && <span className="text-sm text-gray-500">Sua página tem {views} visitas</span>}
+      </div>
       <div className="flex items-center mt-2">
         <p className="font-medium mr-2">Copiar URL do site</p>
         <FaCopy onClick={handleCopyUrl} className="text-green-900 cursor-pointer" />
@@ -223,7 +262,7 @@ export default function Home() {
       </div>
 
       {/* Exportação do Site */}
-      <div className="mt-6">
+      {planType === 'premium' && <div className="mt-6">
         <h2 className="text-xl font-semibold">Exportar/Publicar do Site</h2>
         <div className="flex gap-4">
           <button
@@ -241,7 +280,7 @@ export default function Home() {
             {publishing ? "Publicando..." : "Publicar Site"}
           </button>
         </div>
-      </div>
+      </div>}
 
       {/* Configurações da Conta */}
       <div className="mt-6">

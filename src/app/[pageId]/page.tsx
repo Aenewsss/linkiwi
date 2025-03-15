@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ref, get } from "firebase/database";
+import { ref, get, update } from "firebase/database";
 import { realtimeDb } from "@/lib/firebase";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,6 +18,10 @@ export default function PublicPage({ params }: any) {
 
         if (snapshot.exists()) {
           setHtmlContent(snapshot.val().html);
+
+          await update(dbRef, {
+            views: (snapshot.val()?.views || 0) + 1,
+          });
         } else {
           router.push("/404"); // Redireciona para a página 404 se não encontrar
         }

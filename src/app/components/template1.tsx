@@ -7,6 +7,8 @@ import { AddOutlined, DeleteOutlined, FormatAlignCenterOutlined, FormatAlignLeft
 import Image from "next/image";
 import { socialLinks } from "../../constant/social-links.const";
 import useTemplateStore from "@/store/templateStore";
+import useAuthStore from "@/store/authStore";
+import { toast } from "react-toastify";
 
 interface IElement {
   id: string
@@ -32,10 +34,10 @@ export const iconOptions = { Instagram, LinkedIn, GitHub, Link: LinkIcon, Public
 
 const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
 
-  const { banner, setBanner, setBannerFile } = useTemplateStore()
+  const { planType } = useAuthStore();
+  const { banner, setBanner, setBannerFile, icon, setIcon, setIconFile } = useTemplateStore()
 
   const [pageBackgroundColor, setPageBackgroundColor] = useState("#F3FDC4"); // 🔹 Estado para cor do fundo da página
-  const [icon,] = useState('/icon-linkiwi.svg');
 
   const [title, setTitle] = useState('Linkiwi');
   const [titleColor, setTitleColor] = useState('black');
@@ -92,6 +94,21 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
 
   // 🔹 Adiciona um novo elemento (link, imagem ou texto)
   const addNewElement = (type: "link" | "image" | "text" | "tracking") => {
+
+    if (planType === "free" && elements.length >= 5) {
+      toast.error("Você não tem permissão para adicionar mais elementos. Atualize seu plano para desbloquear recursos.")
+      setTimeout(() => {
+        window.open(process.env.NEXT_PUBLIC_CHOOSE_PLAN, "_blank");
+      }, 2000);
+      return;
+    } else if (planType === "basic" && elements.length >= 16) {
+      toast.error("Você não tem permissão para adicionar mais elementos. Atualize seu plano para desbloquear recursos.")
+      setTimeout(() => {
+        window.open(process.env.NEXT_PUBLIC_CHOOSE_PLAN, "_blank");
+      }, 2000);
+      return;
+    }
+
     const newId = String(elements.length + 1);
     if (type === "link") {
       setElements([
@@ -131,6 +148,16 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
     setBanner(fileURL);
   };
 
+  const handleIconChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIconFile(file)
+
+    const fileURL = URL.createObjectURL(file); // Cria um link temporário para visualizar a imagem
+    setIcon(fileURL);
+  };
+
 
   return (
     <div className="flex">
@@ -162,6 +189,16 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
           <label className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg cursor-pointer">
             Selecionar Imagem
             <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+          </label>
+        </div>
+
+        {/* 🔹 Seletor do ícone */}
+        <div className="mb-10 flex flex-col items-center">
+          <span className="text-gray-600 text-lg font-semibold">Ícone Topo</span>
+
+          <label className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg cursor-pointer">
+            Selecionar Ícone
+            <input type="file" accept="image/*" className="hidden" onChange={handleIconChange} />
           </label>
         </div>
 
@@ -588,7 +625,7 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
                   )}
 
                   {
-                    item.type === "tracking" && (
+                    (planType === 'premium' && item.type === "tracking") && (
                       <>
                         <label className="text-sm font-semibold">Código de Rastreamento:</label>
                         <textarea
@@ -630,12 +667,12 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
           >
             <AddOutlined /> Adicionar Texto
           </button>
-          <button
+          {planType === 'premium' &&<button
             onClick={() => addNewElement("tracking")}
             className="mt-6 px-6 py-3 bg-green-600 text-white rounded-md cursor-pointer"
           >
             <AddOutlined /> Adicionar Pixel/Tag
-          </button>
+          </button>}
           {/* <button
               onClick={() => addNewElement('image')}
               className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-md  cursor-pointer"
@@ -656,13 +693,12 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
           <Image unoptimized className="pointer-events-none absolute z-20 top-8 left-1/2 -translate-x-1/2" width={420} height={800} src="/mockup1.png" alt="mockup 1" />
           <Image unoptimized className="pointer-events-none absolute z-20 top-8 left-1/2 -translate-x-1/2" width={420} height={800} src="/mockup2.png" alt="mockup 2" />
           <div ref={ref} className="relative rounded-[48px] flex items-center w-[380px] h-[750px] mt-10 overflow-hidden" style={{ backgroundColor: pageBackgroundColor }}>
-            <div className="flex flex-col items-center justify-start w-full h-full gap-10 pb-4 ps-2 pe-6" style={{ backgroundColor: pageBackgroundColor }}>
+            <div className="flex flex-col items-center justify-start w-full h-full gap-10 ps-2 pe-6" style={{ backgroundColor: pageBackgroundColor }}>
               <div className="flex flex-col gap-10 w-full relative  overflow-y-auto">
                 <div className="w-full max-h-[200px] relative">
                   <Image unoptimized className="w-full object-cover h-full" width={300} height={300} src={banner} alt="Top banner" />
                   <Image unoptimized className="absolute -bottom-7 left-1/2 -translate-x-1/2" width={60} height={60} src={icon} alt="Top icon" />
                 </div>
-
 
                 <div className="flex flex-col gap-4 px-4 ">
                   <div className="flex flex-col gap-1">
@@ -708,6 +744,14 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
                         ? <div key={item.id} dangerouslySetInnerHTML={{ __html: item.pixel }} />
                         : <p className={`${item.textSize} ${item.bold ? "font-bold" : ""} ${item.align} mb-0`} style={{ color: item.textColor }} key={item.id}>{item.content}</p>)}
                 </div>
+             {planType !== 'premium' && <footer className="py-8 text-center bg-[#5C9E31] w-full">
+                <p className="text-sm text-white">
+                  Página criada por <a href="https://linkiwi.com" target="_blank" className="text-blue-700">Linkiwi</a>
+                </p>
+                <p className="text-sm text-white">
+                  Todos os direitos reservados
+                </p>
+              </footer>}
               </div>
             </div>
           </div>

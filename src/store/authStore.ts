@@ -8,6 +8,8 @@ interface AuthState {
   setUser: (user: User | null) => void;
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  planType: string | null;
+  setPlanType: (planType: string | null) => void;
 }
 
 // 🔹 Criando o Zustand Store com tipagem
@@ -32,7 +34,10 @@ const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await signOut(auth);
     set({ user: null });
-  }
+  },
+
+  planType: null,
+  setPlanType: (planType) => set({ planType }),
 }));
 
 // 🔹 Monitora o estado da autenticação no Firebase

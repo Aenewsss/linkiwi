@@ -12,6 +12,10 @@ interface TemplateState {
   setBannerFile: (bannerFile: string | File) => void; // 🔹 Função para atualizar o banner
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  icon: string; // 🔹 Estado para armazenar o ícone
+  iconFile?: string | File; // 🔹 Estado para armazenar o ícone
+  setIcon: (icon: string) => void; // 🔹 Função para atualizar o ícone
+  setIconFile: (iconFile: string | File) => void; // 🔹 Função para atualizar o ícone
 }
 
 // 🔹 Criando o Zustand Store
@@ -44,7 +48,11 @@ const useTemplateStore = create<TemplateState>((set) => ({
   logout: async () => {
     await signOut(auth);
     set({ user: null });
-  }
+  },
+  icon: '/icon-linkiwi.svg',
+  iconFile: null,
+  setIcon: (icon) => set({ icon }),
+  setIconFile: (iconFile) => set({ iconFile }),
 }));
 
 // 🔹 Monitora o estado da autenticação no Firebase
