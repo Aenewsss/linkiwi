@@ -16,6 +16,8 @@ interface TemplateState {
   iconFile?: string | File; // 🔹 Estado para armazenar o ícone
   setIcon: (icon: string) => void; // 🔹 Função para atualizar o ícone
   setIconFile: (iconFile: string | File) => void; // 🔹 Função para atualizar o ícone
+  pageId: string; // 🔹 Estado para armazenar o ID da página
+  setPageId: (pageId: string) => void; // 🔹 Função para atualizar o ID da página
 }
 
 // 🔹 Criando o Zustand Store
@@ -53,6 +55,9 @@ const useTemplateStore = create<TemplateState>((set) => ({
   iconFile: null,
   setIcon: (icon) => set({ icon }),
   setIconFile: (iconFile) => set({ iconFile }),
+
+  pageId: '',
+  setPageId: (pageId) => set({ pageId }),
 }));
 
 // 🔹 Monitora o estado da autenticação no Firebase

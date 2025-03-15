@@ -10,12 +10,13 @@ import { get, ref, update } from "firebase/database";
 import { storage } from "@/lib/firebase";
 import { ref as firebaseRef, getDownloadURL, uploadBytesResumable } from "firebase/storage"
 import useTemplateStore from "@/store/templateStore";
-import { FaCopy, FaExternalLinkAlt } from "react-icons/fa"; // Import the copy icon
+import { FaCopy } from "react-icons/fa"; // Import the copy icon
 import { toast } from 'react-toastify';
+import {  Logout } from "@mui/icons-material";
 
 export default function Home() {
   const { user, logout, setPlanType, planType } = useAuthStore();
-  const { bannerFile, setBanner, iconFile, setIcon } = useTemplateStore();
+  const { bannerFile, setBanner, iconFile, setIcon, pageId, setPageId } = useTemplateStore();
   const router = useRouter();
 
   const [views, setViews] = useState(0);
@@ -30,13 +31,17 @@ export default function Home() {
       const userPlanRef = ref(realtimeDb, `users/${auth.currentUser.uid}`);
       get(userPlanRef).then((snapshot) => {
         const planType = snapshot.val()?.planType;
-        
+
         setPlanType(planType);
       })
 
       const userRef = ref(realtimeDb, `users/${auth.currentUser.uid}/latestPage`);
       get(userRef).then((snapshot) => {
-        const pageId = snapshot.exists() ? snapshot.val() : uuidv4();
+        const pageId = snapshot.exists() ? snapshot.val() : null;
+
+        if (!pageId) return toast.error("Não foi possível encontrar a página");
+
+        setPageId(pageId);
 
         get(ref(realtimeDb, `publishedPages/${pageId}`)).then((snapshot) => {
           setViews(snapshot.val()?.views || 0);
@@ -242,24 +247,27 @@ export default function Home() {
   if (!user) return null
 
   return (
-    <div className="p-6">
+    <div className="p-6 flex flex-col gap-6">
       <div className="flex justify-between">
-        <h1 className="text-2xl font-bold">Bem-vindo, {user?.displayName}!</h1>
-        {planType !== "free" && <span className="text-sm text-gray-500">Sua página tem {views} visitas</span>}
-      </div>
-      <div className="flex items-center mt-2">
-        <p className="font-medium mr-2">Copiar URL do site</p>
-        <FaCopy onClick={handleCopyUrl} className="text-green-900 cursor-pointer" />
-      </div>
-      <div className="flex items-center mt-2">
-        <p className="font-medium mr-2">Abrir site</p>
-        <FaExternalLinkAlt onClick={handleAccessPage} className="text-green-900 cursor-pointer" />
+        <div className="flex flex-col">
+          <h1 className="text-2xl font-bold">Bem-vindo, {user?.displayName}!</h1>
+          {planType !== "free" && <span className="text-sm text-gray-500">Sua página tem {views} visitas</span>}
+        </div>
+        <div className="flex bg-[#5C9E31] text-white rounded-2xl p-4 w-fit items-center gap-10">
+          <p className="font-medium">Clique para acessar seu
+            <a href={`${window.location.origin}/${pageId}`} className="underline cursor-pointer hover:text-white/80 transition-all duration-300">
+              &nbsp;Linkiwi
+            </a>
+          </p>
+          <div onClick={handleCopyUrl} className="hover:bg-white/80 transition-all duration-300 flex items-center cursor-pointer text-black bg-white rounded-2xl p-2">
+            <p className="font-medium mr-2">Copiar URL do site</p>
+            <FaCopy />
+          </div>
+        </div>
       </div>
 
       {/* Escolha de Template */}
-      <div className="p-6">
-        <TemplateMinimalist ref={previewRef} />
-      </div>
+      <TemplateMinimalist ref={previewRef} />
 
       {/* Exportação do Site */}
       {planType === 'premium' && <div className="mt-6">
@@ -283,14 +291,15 @@ export default function Home() {
       </div>}
 
       {/* Configurações da Conta */}
-      <div className="mt-6">
+      {/* <div className="mt-6">
         <h2 className="text-xl font-semibold">Configurações</h2>
         <p className="text-gray-600 text-sm">Gerencie suas informações de conta e personalizações.</p>
-      </div>
+      </div> */}
 
       {/* Logout */}
-      <button onClick={logout} className="mt-6 px-6 py-3 bg-red-600 text-white rounded-md cursor-pointer">
-        Logout
+      <button onClick={logout} className="mt-6 px-6 py-3 bg-red-600 text-white rounded-md cursor-pointer flex self-end gap-4">
+        Sair
+        <Logout />
       </button>
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} />

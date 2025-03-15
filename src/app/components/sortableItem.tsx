@@ -21,16 +21,18 @@ export default function SortableItem({ id, children }: { id: string; children: R
           e.stopPropagation();
         }
       }}
-      className={`p-4 border rounded-lg bg-white shadow-md flex flex-col items-center`}
+      className={`border rounded-lg bg-white shadow-md flex items-center gap-4`}
     >
       <div
         {...attributes}
         {...listeners}
-        className="drag-handle cursor-grab flex self-start active:p-2 active:cursor-grabbing active:bg-gray-100 hover:bg-gray-100 transition-all  font-semibold text-gray-700 py-1 -mt-3 mb-4"
+        className="drag-handle p-4 cursor-grab flex self-start active:p-2 active:cursor-grabbing active:bg-gray-100 hover:bg-gray-100 transition-all  font-semibold text-gray-700 h-full items-center justify-center"
       >
-        ⠿ Arraste aqui
+        ⠿
       </div>
-      {children}
+      <div className="w-full pe-4">
+        {children}
+      </div>
     </div>
   );
 }
