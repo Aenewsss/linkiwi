@@ -129,6 +129,23 @@ export default function Home() {
   const [modalOpen, setModalOpen] = useState(false);
   const [publishedPageUrl, setPublishedPageUrl] = useState("");
 
+  const uploadImage = async (item) => {
+    const storageRef = firebaseRef(storage, `images/${auth.currentUser.uid}/${item.id}`);
+    const uploadTask = uploadBytesResumable(storageRef, item.image);
+
+    return new Promise((resolve, reject) => {
+      uploadTask.on(
+        "state_changed",
+        null,
+        (error) => reject(error),
+        async () => {
+          const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve(downloadUrl);
+        }
+      );
+    });
+  };
+
   const publishSite = async () => {
     try {
       setLoading(true); // Set loading spinner
@@ -136,12 +153,25 @@ export default function Home() {
 
       setPublishing(true);
 
-      setTimeout(() => {
-        console.log('awaiting');
-      }, 1000);
-
       if (!previewRef.current || !auth?.currentUser?.uid) return;
 
+      const linkElementsWithImages = elements.filter((item) => item.type === "link" && item.image);
+      for (const item of linkElementsWithImages) {
+        try {
+          const downloadUrl = await uploadImage(item) as string;
+          const sanitizedId = CSS.escape(`${item.id}-link-image`);
+          const imgElement = previewRef.current.querySelector(`#${sanitizedId}`) as HTMLImageElement;
+          if (imgElement) {
+            imgElement.src = downloadUrl; // Update the src attribute of the image element in the HTML
+          }
+        } catch (error) {
+          console.error("Error uploading image:", error);
+          toast.error("Failed to upload image.");
+          setLoading(false); // Unset loading spinner
+          return;
+        }
+      }
+      
       // 🔹 Captura SOMENTE o HTML do preview
       const htmlContent = `<!DOCTYPE html>
 <html lang="pt">
@@ -227,7 +257,7 @@ export default function Home() {
   const Modal = ({ isOpen, onClose }) => {
     if (!isOpen) return null;
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="fixed inset-0 flex items-center justify-center bg-[#00000080] bg-opacity-50">
         <div className="bg-white p-6 rounded shadow-lg">
           <h2 className="text-xl font-bold mb-4">Site Publicado!</h2>
           <p className="mb-4">URL do site: {publishedPageUrl}</p>
@@ -251,7 +281,6 @@ export default function Home() {
       setLoading(false); // Unset loading spinner
       return;
     }
-    console.log(bannerFile, iconFile)
 
     if (bannerFile || iconFile) await handleFileUpload();
 
@@ -266,23 +295,6 @@ export default function Home() {
       const imgElement = previewRef.current.querySelector(`#${sanitizedId}`) as HTMLImageElement;
       imgElement.src = 'https://firebasestorage.googleapis.com/v0/b/linkiwi-fecef.firebasestorage.app/o/default%2Ficon-linkiwi.png?alt=media&token=02968413-c1e2-42c3-a65c-db8f0e6acb0f'
     }
-
-    const uploadImage = async (item) => {
-      const storageRef = firebaseRef(storage, `images/${auth.currentUser.uid}/${item.id}`);
-      const uploadTask = uploadBytesResumable(storageRef, item.image);
-
-      return new Promise((resolve, reject) => {
-        uploadTask.on(
-          "state_changed",
-          null,
-          (error) => reject(error),
-          async () => {
-            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve(downloadUrl);
-          }
-        );
-      });
-    };
 
     const linkElementsWithImages = elements.filter((item) => item.type === "link" && item.image);
     for (const item of linkElementsWithImages) {
@@ -345,7 +357,7 @@ export default function Home() {
         </div>
         <div className="flex bg-[#5C9E31] text-white rounded-2xl p-4 w-fit items-center gap-10">
           <p className="font-medium">Clique para acessar seu
-            <a href={`${window.location.origin}/${pageId}`} className="underline cursor-pointer hover:text-white/80 transition-all duration-300">
+            <a target="_blank" href={`${window.location.origin}/${pageId}`} className="underline cursor-pointer hover:text-white/80 transition-all duration-300">
               &nbsp;Linkiwi
             </a>
           </p>
