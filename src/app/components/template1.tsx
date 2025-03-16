@@ -10,7 +10,7 @@ import useTemplateStore from "@/store/templateStore";
 import useAuthStore from "@/store/authStore";
 import { toast } from "react-toastify";
 
-interface IElement {
+export interface IElement {
   id: string
   type: 'link' | 'image' | 'text' | "tracking"
   text?: string
@@ -28,6 +28,7 @@ interface IElement {
   iconColor?: string
   pixel?: string
   border?: string
+  image?: File
 }
 
 export const iconOptions = { Instagram, LinkedIn, GitHub, Link: LinkIcon, Public }; // Lista de ícones disponíveis
@@ -35,7 +36,7 @@ export const iconOptions = { Instagram, LinkedIn, GitHub, Link: LinkIcon, Public
 const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
 
   const { planType } = useAuthStore();
-  const { banner, setBanner, setBannerFile, icon, setIcon, setIconFile } = useTemplateStore()
+  const { banner, setBanner, setBannerFile, icon, setIcon, setIconFile, elements, setElements } = useTemplateStore()
 
   const [pageBackgroundColor, setPageBackgroundColor] = useState("#F3FDC4"); // 🔹 Estado para cor do fundo da página
 
@@ -58,13 +59,6 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
   const textSizes = [{ value: "text-sm", label: 'Pequeno' }, { value: "text-md", label: 'Médio' }, { value: "text-lg", label: 'Grande' }, { value: "text-xl", label: 'Muito Grande' }, { value: "text-2xl", label: 'Maior ainda' }, { value: "text-3xl", label: 'Super Grande' }];
   const textAlignments = ["text-left", "text-center", "text-right"];
 
-  const [elements, setElements] = useState<IElement[]>([
-    { id: "4", type: "tracking", pixel: "" },
-    { id: "3", type: "link", text: "Meu Instagram", url: "https://instagram.com", bgColor: "#FFFFFF", textColor: "#00000", border: '#e2e8f0', icon: true, iconBackgroundColor: '#BEF264' },
-    { id: "2", type: "link", text: "Meu LinkedIn", url: "https://linkedin.com", bgColor: "#FFFFFF", textColor: "#00000", border: '#e2e8f0', icon: true, iconBackgroundColor: '#BEF264' },
-    { id: "1", type: "text", content: "Bem-vindo à minha página personalizada!", textSize: "text-2xl", textColor: "#000000", bold: true, align: "text-left" },
-  ]);
-
   // 🔹 Atualiza os elementos ao arrastar
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -76,9 +70,8 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
   };
 
   // 🔹 Atualiza os valores editados
-  const updateElement = (id: string, field: string, value: string | boolean) => {
-    setElements((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+  const updateElement = (id: string, field: string, value: string | boolean | File) => {
+    setElements(elements.map((item) => (item.id === id ? { ...item, [field]: value } : item))
     );
   };
 
@@ -125,7 +118,7 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
 
   // 🔹 Remove um elemento
   const removeElement = (id: string) => {
-    setElements((prev) => prev.filter((item) => item.id !== id));
+    setElements(elements.filter((item) => item.id !== id));
   };
 
   const handleFileChange = (event) => {
@@ -521,6 +514,37 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
                         </div>
                       </div>
 
+                      <div className="flex flex-col gap-2">
+                        <label className="text-md text-gray-600">Imagem</label>
+                        <label htmlFor={`file-input-${item.id}`} className="w-full px-2 py-1 border border-gray-300 rounded-md cursor-pointer text-gray-500">
+                          Escolha uma imagem
+                        </label>
+                        <input
+                          id={`file-input-${item.id}`}
+                          type="file"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              if (file.size > 2 * 1024 * 1024) {
+                                toast.error("O arquivo deve ser menor que 2MB.");
+                                return;
+                              }
+                              updateElement(item.id, "image", file);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                        {item.image && (
+                          <Image
+                            src={URL.createObjectURL(item.image)}
+                            alt="Preview"
+                            className="object-contain"
+                            width={100}
+                            height={100}
+                          />
+                        )}
+                      </div>
+
                       <div className="flex flex-col gap-1">
                         <label className="text-md text-gray-600">Texto</label>
                         <input
@@ -713,11 +737,11 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
           <Image unoptimized className="pointer-events-none absolute z-20 top-8 left-1/2 -translate-x-1/2" width={420} height={800} src="/mockup1.png" alt="mockup 1" />
           <Image unoptimized className="pointer-events-none absolute z-20 top-8 left-1/2 -translate-x-1/2" width={420} height={800} src="/mockup2.png" alt="mockup 2" />
           <div ref={ref} className="relative rounded-[48px] flex items-center w-[380px] h-[750px] mt-10 overflow-hidden" style={{ backgroundColor: pageBackgroundColor }}>
-            <div className="flex flex-col items-center justify-start w-full h-full gap-10 ps-2 pe-6" style={{ backgroundColor: pageBackgroundColor }}>
+            <div className="flex flex-col items-center justify-start w-full h-full gap-10 md:p-0 ps-2 pe-6" style={{ backgroundColor: pageBackgroundColor }}>
               <div className="flex flex-col gap-10 w-full relative  overflow-y-auto">
                 <div className="w-full max-h-[200px] relative">
-                  <Image unoptimized className="w-full object-cover h-full" width={300} height={300} src={banner} alt="Top banner" />
-                  <Image unoptimized className="absolute -bottom-7 left-1/2 -translate-x-1/2" width={60} height={60} src={icon} alt="Top icon" />
+                  <Image id="top-banner" unoptimized className="w-full object-cover h-full" width={300} height={300} src={banner} alt="Top banner" />
+                  <Image id="top-icon" unoptimized className="absolute -bottom-7 left-1/2 -translate-x-1/2" width={60} height={60} src={icon} alt="Top icon" />
                 </div>
 
                 <div className="flex flex-col gap-4 px-4 ">
@@ -750,13 +774,26 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
 
                 <div className="flex flex-col gap-3 px-10">
                   {[...elements].reverse().map((item) => item.type === "link"
-                    ? <a target="_blank" style={{ backgroundColor: item.bgColor, color: item.textColor, borderColor: item.border }} key={item.id} href={item.url} className="px-6 py-3 rounded-2xl justify-between items-center flex gap-2 border-2 font-medium uppercase transition-all hover:scale-105">
-                      {item.text}
-                      {item.icon &&
-                        <div style={{ backgroundColor: item.iconBackgroundColor }} className="rounded-xl p-2 flex items-center">
-                          <ArrowRightAltRounded style={{ fill: item.iconColor, width: 16, height: 16 }} />
-                        </div>
-                      }
+                    ? <a target="_blank" style={{ backgroundColor: item.bgColor, color: item.textColor, borderColor: item.border }} key={item.id} href={item.url} className="px-6 py-3 rounded-2xl justify-between items-center flex gap-2 border-2 font-medium uppercase transition-all hover:scale-105 flex-col">
+                      {item.image && (
+                        <Image
+                          id={`${item.id}-link-image`}
+                          unoptimized
+                          src={URL.createObjectURL(item.image)}
+                          alt="Preview"
+                          className="object-cover w-full rounded-lg max-h-32 md:max-h-[400px]"
+                          width={100}
+                          height={100}
+                        />
+                      )}
+                      <div className="flex justify-between w-full">
+                        {item.text}
+                        {item.icon &&
+                          <div style={{ backgroundColor: item.iconBackgroundColor }} className="rounded-xl p-2 flex items-center">
+                            <ArrowRightAltRounded style={{ fill: item.iconColor, width: 16, height: 16 }} />
+                          </div>
+                        }
+                      </div>
                     </a>
                     : item.type === "image"
                       ? <img key={item.id} src={item.src} className="max-w-48 max-h-48 object-cover" />

@@ -16,7 +16,6 @@ export default function SortableItem({ id, children }: { id: string; children: R
       style={style}
       onPointerDown={(e) => {
         // Impede o arraste se estiver interagindo com um input
-        console.log((e.target as HTMLElement).dataset.noDnd === "true")
         if ((e.target as HTMLElement).dataset.noDnd === "true") {
           e.stopPropagation();
         }

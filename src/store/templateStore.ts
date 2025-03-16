@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { onAuthStateChanged, signOut, signInWithPopup, GoogleAuthProvider, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { IElement } from "@/app/components/template1";
 
 // 🔹 Definindo o tipo do estado
 interface TemplateState {
@@ -18,6 +19,8 @@ interface TemplateState {
   setIconFile: (iconFile: string | File) => void; // 🔹 Função para atualizar o ícone
   pageId: string; // 🔹 Estado para armazenar o ID da página
   setPageId: (pageId: string) => void; // 🔹 Função para atualizar o ID da página
+  elements: IElement[]; // 🔹 Estado para armazenar os elementos
+  setElements: (elements: IElement[]) => void; // 🔹 Função para atualizar os elementos
 }
 
 // 🔹 Criando o Zustand Store
@@ -58,6 +61,14 @@ const useTemplateStore = create<TemplateState>((set) => ({
 
   pageId: '',
   setPageId: (pageId) => set({ pageId }),
+
+  elements: [
+    { id: "4", type: "tracking", pixel: "" },
+    { id: "3", type: "link", text: "Meu Instagram", url: "https://instagram.com", bgColor: "#FFFFFF", textColor: "#00000", border: '#e2e8f0', icon: true, iconBackgroundColor: '#BEF264' },
+    { id: "2", type: "link", text: "Meu LinkedIn", url: "https://linkedin.com", bgColor: "#FFFFFF", textColor: "#00000", border: '#e2e8f0', icon: true, iconBackgroundColor: '#BEF264' },
+    { id: "1", type: "text", content: "Bem-vindo à minha página personalizada!", textSize: "text-2xl", textColor: "#000000", bold: true, align: "text-left" },
+  ],
+  setElements: (elements) => set({ elements }),
 }));
 
 // 🔹 Monitora o estado da autenticação no Firebase

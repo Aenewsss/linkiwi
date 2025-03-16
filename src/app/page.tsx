@@ -12,14 +12,21 @@ import { ref as firebaseRef, getDownloadURL, uploadBytesResumable } from "fireba
 import useTemplateStore from "@/store/templateStore";
 import { FaCopy } from "react-icons/fa"; // Import the copy icon
 import { toast } from 'react-toastify';
-import {  Logout } from "@mui/icons-material";
+import { Logout } from "@mui/icons-material";
+
+const Spinner = () => (
+  <div className="flex justify-center items-center fixed inset-0 bg-[#00000080] top-0 left-0 w-screen h-screen z-20 pointer-events-none">
+    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+  </div>
+);
 
 export default function Home() {
   const { user, logout, setPlanType, planType } = useAuthStore();
-  const { bannerFile, setBanner, iconFile, setIcon, pageId, setPageId } = useTemplateStore();
+  const { bannerFile, setBanner, iconFile, setIcon, pageId, setPageId, elements } = useTemplateStore();
   const router = useRouter();
 
   const [views, setViews] = useState(0);
+  const [loading, setLoading] = useState(false); // State for loading spinner
   // 🔹 Referência para capturar o HTML gerado
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -104,7 +111,8 @@ export default function Home() {
 
   const publishSite = async () => {
     try {
-      if (bannerFile) handleFileUpload();
+      setLoading(true); // Set loading spinner
+      if (bannerFile || iconFile) handleFileUpload();
 
       setPublishing(true);
 
@@ -112,7 +120,6 @@ export default function Home() {
         console.log('awaiting');
       }, 1000);
 
-      console.log(auth.currentUser);
       if (!previewRef.current || !auth?.currentUser?.uid) return;
 
       // 🔹 Captura SOMENTE o HTML do preview
@@ -131,10 +138,10 @@ export default function Home() {
 
       const userId = auth.currentUser.uid;
 
-      const userRef = ref(realtimeDb, `users/${userId}/latestPage`);
+      const userRef = ref(realtimeDb, `users/${userId}`);
       const snapshot = await get(userRef);
 
-      const pageId = snapshot.exists() ? snapshot.val() : uuidv4(); // Se existir, usa o mesmo UUID, senão, cria um novo
+      const pageId = snapshot.exists() ? snapshot.val()?.latestPage : uuidv4(); // Se existir, usa o mesmo UUID, senão, cria um novo
 
       // 📌 Salva o HTML no Firebase usando o UUID como identificador único
       await update(ref(realtimeDb, `publishedPages/${pageId}`), {
@@ -144,7 +151,7 @@ export default function Home() {
       });
 
       // 📌 Atualiza o UUID salvo para esse usuário
-      await update(userRef, pageId);
+      await update(userRef, { latestPage: pageId });
 
       const pageUrl = `${window.location.origin}/${pageId}`;
       setPublishedPageUrl(pageUrl);
@@ -154,9 +161,11 @@ export default function Home() {
       console.error(e);
     } finally {
       setPublishing(false);
+      setLoading(false); // Unset loading spinner
     }
   };
   const handleCopyUrl = async () => {
+    setLoading(true); // Set loading spinner
     if (!publishedPageUrl) {
       const userRef = ref(realtimeDb, `users/${auth.currentUser.uid}/latestPage`);
       const snapshot = await get(userRef);
@@ -165,17 +174,21 @@ export default function Home() {
 
       if (!pageId) {
         toast.error("Failed to retrieve page ID.");
+        setLoading(false); // Unset loading spinner
         return;
       }
 
       toast.success("URL copiada para a área de transferência!");
+      setLoading(false); // Unset loading spinner
       return navigator.clipboard.writeText(`${window.location.origin}/${pageId}`);
     }
     navigator.clipboard.writeText(publishedPageUrl);
     toast.success("URL copiada para a área de transferência!");
+    setLoading(false); // Unset loading spinner
   };
 
   const handleAccessPage = async () => {
+    setLoading(true); // Set loading spinner
     const userRef = ref(realtimeDb, `users/${auth.currentUser.uid}/latestPage`);
     const snapshot = await get(userRef);
 
@@ -183,9 +196,11 @@ export default function Home() {
 
     if (!pageId) {
       toast.error("Failed to retrieve page ID.");
+      setLoading(false); // Unset loading spinner
       return;
     }
 
+    setLoading(false); // Unset loading spinner
     return window.open(`${window.location.origin}/${pageId}`, "_blank");
   };
 
@@ -210,8 +225,60 @@ export default function Home() {
     );
   };
 
-  const exportSite = () => {
-    if (!previewRef.current) return;
+  const exportSite = async () => {
+    setLoading(true); // Set loading spinner
+    if (!previewRef.current) {
+      setLoading(false); // Unset loading spinner
+      return;
+    }
+
+    if (bannerFile || iconFile) handleFileUpload();
+
+    if (!bannerFile) {
+      const sanitizedId = CSS.escape(`top-banner`);
+      const imgElement = previewRef.current.querySelector(`#${sanitizedId}`) as HTMLImageElement;
+      imgElement.src = 'https://firebasestorage.googleapis.com/v0/b/linkiwi-fecef.firebasestorage.app/o/default%2Ftop-banner-linkiwi.png?alt=media&token=0418a2d1-f7f4-4179-9dff-a916dd95cd40'
+    }
+
+    if (!iconFile) {
+      const sanitizedId = CSS.escape(`top-icon`);
+      const imgElement = previewRef.current.querySelector(`#${sanitizedId}`) as HTMLImageElement;
+      imgElement.src = 'https://firebasestorage.googleapis.com/v0/b/linkiwi-fecef.firebasestorage.app/o/default%2Ficon-linkiwi.png?alt=media&token=02968413-c1e2-42c3-a65c-db8f0e6acb0f'
+    }
+
+    const uploadImage = async (item) => {
+      const storageRef = firebaseRef(storage, `images/${auth.currentUser.uid}/${item.id}`);
+      const uploadTask = uploadBytesResumable(storageRef, item.image);
+
+      return new Promise((resolve, reject) => {
+        uploadTask.on(
+          "state_changed",
+          null,
+          (error) => reject(error),
+          async () => {
+            const downloadUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(downloadUrl);
+          }
+        );
+      });
+    };
+
+    const linkElementsWithImages = elements.filter((item) => item.type === "link" && item.image);
+    for (const item of linkElementsWithImages) {
+      try {
+        const downloadUrl = await uploadImage(item) as string;
+        const sanitizedId = CSS.escape(`${item.id}-link-image`);
+        const imgElement = previewRef.current.querySelector(`#${sanitizedId}`) as HTMLImageElement;
+        if (imgElement) {
+          imgElement.src = downloadUrl; // Update the src attribute of the image element in the HTML
+        }
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        toast.error("Failed to upload image.");
+        setLoading(false); // Unset loading spinner
+        return;
+      }
+    }
 
     setExporting(true);
 
@@ -225,7 +292,7 @@ export default function Home() {
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="flex items-center justify-center h-screen">
-    ${previewRef.current.innerHTML} 
+  ${previewRef.current.innerHTML} 
 </body>
 </html>`;
     const blob = new Blob([htmlContent], { type: "text/html" });
@@ -242,12 +309,14 @@ export default function Home() {
     // Limpar referência do link
     document.body.removeChild(link);
     setExporting(false);
+    setLoading(false); // Unset loading spinner
   };
 
   if (!user) return null
 
   return (
     <div className="p-6 flex flex-col gap-6">
+      {loading && <Spinner />} {/* Show spinner when loading */}
       <div className="flex justify-between">
         <div className="flex flex-col">
           <h1 className="text-2xl font-bold">Bem-vindo, {user?.displayName}!</h1>
