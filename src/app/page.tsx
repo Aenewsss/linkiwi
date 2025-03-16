@@ -13,10 +13,11 @@ import useTemplateStore from "@/store/templateStore";
 import { FaCopy } from "react-icons/fa"; // Import the copy icon
 import { toast } from 'react-toastify';
 import { Logout } from "@mui/icons-material";
+import Image from "next/image";
 
 const Spinner = () => (
   <div className="flex justify-center items-center fixed inset-0 bg-[#00000080] top-0 left-0 w-screen h-screen z-20 pointer-events-none">
-    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+    <Image className="animate-spin" src="/icon-linkiwi.svg" alt="Spinner" width={64} height={64} />
   </div>
 );
 
@@ -64,46 +65,65 @@ export default function Home() {
   const handleFileUpload = async () => {
     if (!bannerFile && !iconFile) return;
 
-    const userId = auth.currentUser.uid
+    const userId = auth.currentUser.uid;
+    const uploadTasks = [];
+
     if (bannerFile) {
       const storageRef = firebaseRef(storage, `banners/${userId}/${(bannerFile as File).name}`);
       const uploadTask = uploadBytesResumable(storageRef, bannerFile as File);
 
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(`Upload em andamento: ${progress}%`);
-        },
-        (error) => {
-          console.error("Erro ao enviar imagem:", error);
-        },
-        async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          setBanner(downloadURL); // Atualiza o estado com a URL da imagem
-        }
-      );
+      const bannerUploadPromise = new Promise<void>((resolve, reject) => {
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log(`Upload em andamento: ${progress}%`);
+          },
+          (error) => {
+            console.error("Erro ao enviar imagem:", error);
+            reject(error);
+          },
+          async () => {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setBanner(downloadURL); // Atualiza o estado com a URL da imagem
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            resolve();
+          }
+        );
+      });
+
+      uploadTasks.push(bannerUploadPromise);
     }
 
     if (iconFile) {
       const storageRef = firebaseRef(storage, `icons/${userId}/${(iconFile as File).name}`);
       const uploadTask = uploadBytesResumable(storageRef, iconFile as File);
 
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log(`Upload em andamento: ${progress}%`);
-        },
-        (error) => {
-          console.error("Erro ao enviar ícone:", error);
-        },
-        async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          setIcon(downloadURL); // Atualiza o estado com a URL da imagem
-        }
-      );
-    };
+      const iconUploadPromise = new Promise<void>((resolve, reject) => {
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log(`Upload em andamento: ${progress}%`);
+          },
+          (error) => {
+            console.error("Erro ao enviar ícone:", error);
+            reject(error);
+          },
+          async () => {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setIcon(downloadURL); // Atualiza o estado com a URL da imagem
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            resolve();
+          }
+        );
+      });
+
+      uploadTasks.push(iconUploadPromise);
+    }
+
+    await Promise.all(uploadTasks);
+    setLoading(false); // Unset loading spinner
   }
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -112,7 +132,7 @@ export default function Home() {
   const publishSite = async () => {
     try {
       setLoading(true); // Set loading spinner
-      if (bannerFile || iconFile) handleFileUpload();
+      if (bannerFile || iconFile) await handleFileUpload();
 
       setPublishing(true);
 
@@ -231,8 +251,9 @@ export default function Home() {
       setLoading(false); // Unset loading spinner
       return;
     }
+    console.log(bannerFile, iconFile)
 
-    if (bannerFile || iconFile) handleFileUpload();
+    if (bannerFile || iconFile) await handleFileUpload();
 
     if (!bannerFile) {
       const sanitizedId = CSS.escape(`top-banner`);
