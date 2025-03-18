@@ -171,7 +171,7 @@ export default function Home() {
           return;
         }
       }
-      
+
       // 🔹 Captura SOMENTE o HTML do preview
       const htmlContent = `<!DOCTYPE html>
 <html lang="pt">
@@ -355,7 +355,7 @@ export default function Home() {
           <h1 className="text-2xl font-bold">Bem-vindo, {user?.displayName}!</h1>
           {planType !== "free" && <span className="text-sm text-gray-500">Sua página tem {views} visitas</span>}
         </div>
-        <div className="flex bg-[#5C9E31] text-white rounded-2xl p-4 w-fit items-center gap-10">
+        {pageId && <div className="flex bg-[#5C9E31] text-white rounded-2xl p-4 w-fit items-center gap-10">
           <p className="font-medium">Clique para acessar seu
             <a target="_blank" href={`${window.location.origin}/${pageId}`} className="underline cursor-pointer hover:text-white/80 transition-all duration-300">
               &nbsp;Linkiwi
@@ -365,38 +365,56 @@ export default function Home() {
             <p className="font-medium mr-2">Copiar URL do site</p>
             <FaCopy />
           </div>
-        </div>
+        </div>}
       </div>
 
       {/* Escolha de Template */}
-      <TemplateMinimalist ref={previewRef} />
+      <TemplateMinimalist publishing={publishing} publishSite={publishSite} ref={previewRef} />
 
-      {/* Exportação do Site */}
-      {planType === 'premium' && <div className="mt-6">
-        <h2 className="text-xl font-semibold">Exportar/Publicar do Site</h2>
-        <div className="flex gap-4">
-          <button
-            onClick={exportSite}
-            disabled={exporting}
-            className="mt-4 px-6 py-3 bg-green-600 text-white rounded-md cursor-pointer"
-          >
-            {exporting ? "Exportando..." : "Exportar Site"}
-          </button>
-          <button
-            onClick={publishSite}
-            disabled={publishing}
-            className="mt-4 px-6 py-3 bg-amber-600 text-white rounded-md cursor-pointer"
-          >
-            {publishing ? "Publicando..." : "Publicar Site"}
-          </button>
+      <div className="flex justify-between">
+        {/* Exportação do Site */}
+        <div className="flex flex-col gap-4">
+          {planType === 'premium' && <div className="flex flex-col gap-2 items-center justify-center">
+            <button
+              onClick={exportSite}
+              disabled={exporting}
+              className=" px-6 py-3 bg-green-600 text-white rounded-md cursor-pointer flex self-start"
+            >
+              {exporting ? "Exportando..." : "Exportar Site"}
+            </button>
+          </div>
+          }
+
+          <div className="flex flex-col gap-2 items-center justify-center h-full">
+            <button
+              onClick={publishSite}
+              disabled={publishing}
+              className=" px-6 py-3 bg-amber-600 text-white rounded-md cursor-pointer flex self-start"
+            >
+              {publishing ? "Publicando..." : "Publicar Site"}
+            </button>
+          </div>
         </div>
-      </div>}
+
+        {pageId && <div className="flex bg-[#5C9E31] text-white rounded-2xl p-4 self-end items-center gap-10">
+          <p className="font-medium">Clique para acessar seu
+            <a target="_blank" href={`${window.location.origin}/${pageId}`} className="underline cursor-pointer hover:text-white/80 transition-all duration-300">
+              &nbsp;Linkiwi
+            </a>
+          </p>
+          <div onClick={handleCopyUrl} className="hover:bg-white/80 transition-all duration-300 flex items-center cursor-pointer text-black bg-white rounded-2xl p-2">
+            <p className="font-medium mr-2">Copiar URL do site</p>
+            <FaCopy />
+          </div>
+        </div>}
+      </div>
 
       {/* Configurações da Conta */}
       {/* <div className="mt-6">
         <h2 className="text-xl font-semibold">Configurações</h2>
         <p className="text-gray-600 text-sm">Gerencie suas informações de conta e personalizações.</p>
       </div> */}
+
 
       {/* Logout */}
       <button onClick={logout} className="mt-6 px-6 py-3 bg-red-600 text-white rounded-md cursor-pointer flex self-end gap-4">
@@ -405,6 +423,6 @@ export default function Home() {
       </button>
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
-    </div>
+    </div >
   );
 }

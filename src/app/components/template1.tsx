@@ -1,5 +1,5 @@
 "use client";
-import { forwardRef, useState } from "react";
+import { ForwardedRef, forwardRef, useState } from "react";
 import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
 import { arrayMove, SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import SortableItem from "./sortableItem";
@@ -33,7 +33,7 @@ export interface IElement {
 
 export const iconOptions = { Instagram, LinkedIn, GitHub, Link: LinkIcon, Public }; // Lista de ícones disponíveis
 
-const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
+const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSite: () => void, publishing: boolean }, ref: ForwardedRef<HTMLDivElement>) => {
 
   const { planType } = useAuthStore();
   const { banner, setBanner, setBannerFile, icon, setIcon, setIconFile, elements, setElements } = useTemplateStore()
@@ -152,7 +152,7 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
         </header> */}
 
         <h2 className="text-gray-600 text-2xl font-semibold">Topo</h2>
-        <div className="flex flex-col items-center border-2 border-gray-200 p-4 rounded-lg shadow-md gap-16">
+        <div className="flex flex-col items-center border-2 border-gray-200 p-4 bg-[rgb(242,242,242)] rounded-lg shadow-md gap-16">
 
           <div className="flex gap-4 justify-start w-full">
             {/* 🔹 Seletor do banner */}
@@ -525,7 +525,7 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
                           onChange={(e) => {
                             const file = e.target.files[0];
                             if (file) {
-                              if (file.size > 2 * 1024 * 1024) {
+                              if (file.size > 50 * 1024 * 1024) {
                                 toast.error("O arquivo deve ser menor que 2MB.");
                                 return;
                               }
@@ -717,7 +717,7 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
       {/* 👀 Prévia da página (lado direito) */}
       <div className="px-4 flex flex-col py-4 pb-10 items-center border-l-2 border-gray-200 relative">
         {/* 🔹 Seletor de cor do fundo */}
-        <div className="flex items-center gap-2 bg-white p-2 rounded-lg shadow-md w-fit absolute  top-2 right-2">
+        <div className="flex items-center gap-2 z-10 bg-white p-2 rounded-lg shadow-md w-fit absolute  top-2 right-2">
           <span className="text-sm ">Cor de Fundo</span>
           <label style={{ backgroundColor: pageBackgroundColor }} className="cursor-pointer rounded-full h-8 w-8 shadow-md border-gray-300 border" htmlFor="pageBgColor">
             <input
@@ -733,77 +733,87 @@ const TemplateMinimalist = forwardRef<HTMLDivElement, unknown>((_, ref) => {
           <h1 className="text-3xl font-bold">Prévia</h1>
           <p className="text-sm">Veja como sua página ficará</p>
         </header> */}
-        <div className="sticky top-10 scale-90">
+        <div className="sticky top-10 scale-90 px-2">
+          <button
+            onClick={publishSite}
+            disabled={publishing}
+            className="absolute -top-12 -right-6 -z-10 px-6 py-3 bg-amber-600 text-white rounded-md cursor-pointer"
+          >
+            {publishing ? "Publicando..." : "Publicar Site"}
+          </button>
           <Image unoptimized className="pointer-events-none absolute z-20 top-8 left-1/2 -translate-x-1/2" width={420} height={800} src="/mockup1.png" alt="mockup 1" />
           <Image unoptimized className="pointer-events-none absolute z-20 top-8 left-1/2 -translate-x-1/2" width={420} height={800} src="/mockup2.png" alt="mockup 2" />
-          <div ref={ref} className="relative rounded-[48px] flex items-center w-[380px] h-[750px] mt-10 overflow-hidden" style={{ backgroundColor: pageBackgroundColor }}>
-            <div className="flex flex-col items-center justify-start w-full h-full gap-10 md:p-0 ps-2 pe-6" style={{ backgroundColor: pageBackgroundColor }}>
-              <div className="flex flex-col gap-10 w-full relative  overflow-y-auto">
-                <div className="w-full max-h-[200px] relative">
-                  <Image id="top-banner" unoptimized className="w-full object-cover h-full" width={300} height={300} src={banner} alt="Top banner" />
-                  <Image id="top-icon" unoptimized className="absolute -bottom-7 left-1/2 -translate-x-1/2" width={60} height={60} src={icon} alt="Top icon" />
-                </div>
+          <div ref={ref} className="relative h-[780px] rounded-[48px] flex items-center w-[380px]  mt-10 overflow-hidden" style={{ backgroundColor: pageBackgroundColor }}>
+            <div className="flex flex-col items-center justify-between h-full w-full gap-10" style={{ backgroundColor: pageBackgroundColor }}>
+              <div className="flex flex-col w-full relative overflow-y-auto justify-between h-full gap-4">
+                <div className="flex flex-col gap-10">
 
-                <div className="flex flex-col gap-4 px-4 ">
-                  <div className="flex flex-col gap-1">
-                    {title && <h1 style={{ color: titleColor }} className="text-2xl font-semibold text-center">{title}</h1>}
-                    {subtitle && <h2 style={{ color: subtitleColor }} className="text-center">{subtitle}</h2>}
+                  <div className="w-full max-h-[200px] relative">
+                    <Image id="top-banner" unoptimized className="w-full object-cover h-full" width={300} height={300} src={banner} alt="Top banner" />
+                    <Image id="top-icon" unoptimized className="absolute -bottom-7 left-1/2 -translate-x-1/2" width={60} height={60} src={icon} alt="Top icon" />
                   </div>
-                  {socialIcons.length > 0 && (
-                    <div className="flex flex-wrap gap-4 justify-center max-w-[300px] mx-auto">
-                      {socialIcons.map((el, index) => {
-                        const IconComponent = socialLinks[el.icon]; // Obtém o componente do ícone pelo nome
 
-                        if (!IconComponent) return null; // Garante que não haja erro caso o ícone não exista
-
-                        return (
-                          <a
-                            target="_blank"
-                            key={index}
-                            className="p-3 rounded-md flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-all"
-                            style={{ backgroundColor: topLinksBackground }}
-                            href={el.link}
-                          >
-                            <IconComponent style={{ width: 20, height: 20, fill: topLinksColor, color: topLinksColor }} />
-                          </a>
-                        );
-                      })}
+                  <div className="flex flex-col gap-4 px-4 ">
+                    <div className="flex flex-col gap-1">
+                      {title && <h1 style={{ color: titleColor }} className="text-2xl font-semibold text-center">{title}</h1>}
+                      {subtitle && <h2 style={{ color: subtitleColor }} className="text-center">{subtitle}</h2>}
                     </div>
-                  )}
-                </div>
+                    {socialIcons.length > 0 && (
+                      <div className="flex flex-wrap gap-4 justify-center max-w-[300px] mx-auto">
+                        {socialIcons.map((el, index) => {
+                          const IconComponent = socialLinks[el.icon]; // Obtém o componente do ícone pelo nome
 
-                <div className="flex flex-col gap-3 px-10">
-                  {[...elements].reverse().map((item) => item.type === "link"
-                    ? <a target="_blank" style={{ backgroundColor: item.bgColor, color: item.textColor, borderColor: item.border }} key={item.id} href={item.url} className="px-6 py-3 rounded-2xl justify-between items-center flex gap-2 border-2 font-medium uppercase transition-all hover:scale-105 flex-col">
-                      {item.image && (
-                        <Image
-                          id={`${item.id}-link-image`}
-                          unoptimized
-                          src={URL.createObjectURL(item.image)}
-                          alt="Preview"
-                          className="object-cover w-full rounded-lg max-h-32 md:max-h-[400px]"
-                          width={100}
-                          height={100}
-                        />
-                      )}
-                      <div className="flex justify-between w-full">
-                        {item.text}
-                        {item.icon &&
-                          <div style={{ backgroundColor: item.iconBackgroundColor }} className="rounded-xl p-2 flex items-center">
-                            <ArrowRightAltRounded style={{ fill: item.iconColor, width: 16, height: 16 }} />
-                          </div>
-                        }
+                          if (!IconComponent) return null; // Garante que não haja erro caso o ícone não exista
+
+                          return (
+                            <a
+                              target="_blank"
+                              key={index}
+                              className="p-3 rounded-md flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-all"
+                              style={{ backgroundColor: topLinksBackground }}
+                              href={el.link}
+                            >
+                              <IconComponent style={{ width: 20, height: 20, fill: topLinksColor, color: topLinksColor }} />
+                            </a>
+                          );
+                        })}
                       </div>
-                    </a>
-                    : item.type === "image"
-                      ? <img key={item.id} src={item.src} className="max-w-48 max-h-48 object-cover" />
-                      : item.type === "tracking"
-                        ? <div key={item.id} dangerouslySetInnerHTML={{ __html: item.pixel }} />
-                        : <p className={`${item.textSize} ${item.bold ? "font-bold" : ""} ${item.align} mb-0`} style={{ color: item.textColor }} key={item.id}>{item.content}</p>)}
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 px-10 max-w-[900px] mx-auto">
+                    {[...elements].reverse().map((item) => item.type === "link"
+                      ? <a target="_blank" style={{ backgroundColor: item.bgColor, color: item.textColor, borderColor: item.border }} key={item.id} href={item.url} className="px-6 py-3 rounded-2xl justify-between items-center flex gap-2 border-2 font-medium uppercase transition-all hover:scale-105 flex-col w-full">
+                        {item.image && (
+                          <Image
+                            id={`${item.id}-link-image`}
+                            unoptimized
+                            src={URL.createObjectURL(item.image)}
+                            alt="Preview"
+                            className={`object-cover w-full rounded-lg h-48`}
+                            width={100}
+                            height={100}
+                          />
+                        )}
+                        <div className="flex justify-between w-full">
+                          {item.text}
+                          {item.icon &&
+                            <div style={{ backgroundColor: item.iconBackgroundColor }} className="rounded-xl p-2 flex items-center">
+                              <ArrowRightAltRounded style={{ fill: item.iconColor, width: 16, height: 16 }} />
+                            </div>
+                          }
+                        </div>
+                      </a>
+                      : item.type === "image"
+                        ? <img key={item.id} src={item.src} className="max-w-48 max-h-48 object-cover" />
+                        : item.type === "tracking"
+                          ? <div key={item.id} dangerouslySetInnerHTML={{ __html: item.pixel }} />
+                          : <p className={`${item.textSize} ${item.bold ? "font-bold" : ""} ${item.align} mb-0`} style={{ color: item.textColor }} key={item.id}>{item.content}</p>)}
+                  </div>
                 </div>
-                {planType !== 'premium' && <footer className="py-8 text-center bg-[#5C9E31] w-full">
+                {planType !== 'premium' && <footer className="py-4 text-center bg-[#5C9E31] w-full flex items-center justify-center flex-col">
                   <p className="text-sm text-white">
-                    Página criada por <a href="https://linkiwi.com" target="_blank" className="text-blue-700">Linkiwi</a>
+                    Página criada por <a href="https://linkiwi.com" target="_blank" className="underline font-bold">Linkiwi</a>
                   </p>
                   <p className="text-sm text-white">
                     Todos os direitos reservados

@@ -63,10 +63,8 @@ const useTemplateStore = create<TemplateState>((set) => ({
   setPageId: (pageId) => set({ pageId }),
 
   elements: [
-    { id: "4", type: "tracking", pixel: "" },
-    { id: "3", type: "link", text: "Meu Instagram", url: "https://instagram.com", bgColor: "#FFFFFF", textColor: "#00000", border: '#e2e8f0', icon: true, iconBackgroundColor: '#BEF264' },
-    { id: "2", type: "link", text: "Meu LinkedIn", url: "https://linkedin.com", bgColor: "#FFFFFF", textColor: "#00000", border: '#e2e8f0', icon: true, iconBackgroundColor: '#BEF264' },
-    { id: "1", type: "text", content: "Bem-vindo à minha página personalizada!", textSize: "text-2xl", textColor: "#000000", bold: true, align: "text-left" },
+    { id: "2", type: "link", text: "Meu Instagram", url: "https://instagram.com", bgColor: "#FFFFFF", textColor: "#00000", border: '#e2e8f0', icon: true, iconBackgroundColor: '#BEF264' },
+    { id: "1", type: "link", text: "Meu LinkedIn", url: "https://linkedin.com", bgColor: "#FFFFFF", textColor: "#00000", border: '#e2e8f0', icon: true, iconBackgroundColor: '#BEF264' },
   ],
   setElements: (elements) => set({ elements }),
 }));
