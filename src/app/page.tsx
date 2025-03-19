@@ -14,6 +14,7 @@ import { FaCopy } from "react-icons/fa"; // Import the copy icon
 import { toast } from 'react-toastify';
 import { Logout } from "@mui/icons-material";
 import Image from "next/image";
+import Link from "next/link";
 
 const Spinner = () => (
   <div className="flex justify-center items-center fixed inset-0 bg-[#00000080] top-0 left-0 w-screen h-screen z-20 pointer-events-none">
@@ -258,7 +259,8 @@ export default function Home() {
     if (!isOpen) return null;
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-[#00000080] bg-opacity-50">
-        <div className="bg-white p-6 rounded shadow-lg">
+        <div className="bg-white p-6 rounded shadow-lg relative">
+          <span className="absolute top-2 text-red-500 font-bold text-lg right-2 cursor-pointer" onClick={onClose}>X</span>
           <h2 className="text-xl font-bold mb-4">Site Publicado!</h2>
           <p className="mb-4">URL do site: {publishedPageUrl}</p>
           <button onClick={handleCopyUrl} className="mr-2 bg-blue-500 text-white px-4 py-2 rounded">
@@ -350,22 +352,26 @@ export default function Home() {
   return (
     <div className="p-6 flex flex-col gap-6">
       {loading && <Spinner />} {/* Show spinner when loading */}
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <div className="flex flex-col">
           <h1 className="text-2xl font-bold">Bem-vindo, {user?.displayName}!</h1>
           {planType !== "free" && <span className="text-sm text-gray-500">Sua página tem {views} visitas</span>}
+          {pageId && <div className="flex bg-[#5C9E31] text-white rounded-2xl px-4 w-fit items-center mt-4 justify-between gap-4">
+            <p className="font-medium">Clique para acessar seu
+              <a target="_blank" href={`${window.location.origin}/${pageId}`} className="underline cursor-pointer hover:text-white/80 transition-all duration-300">
+                &nbsp;Linkiwi
+              </a>
+            </p>
+            <div onClick={handleCopyUrl} className="hover:bg-white/80 transition-all duration-300 flex items-center cursor-pointer text-black bg-white rounded-2xl p-2 m-1">
+              <p className="font-medium mr-2">Copiar URL do site</p>
+              <FaCopy />
+            </div>
+          </div>}
         </div>
-        {pageId && <div className="flex bg-[#5C9E31] text-white rounded-2xl p-4 w-fit items-center gap-10">
-          <p className="font-medium">Clique para acessar seu
-            <a target="_blank" href={`${window.location.origin}/${pageId}`} className="underline cursor-pointer hover:text-white/80 transition-all duration-300">
-              &nbsp;Linkiwi
-            </a>
-          </p>
-          <div onClick={handleCopyUrl} className="hover:bg-white/80 transition-all duration-300 flex items-center cursor-pointer text-black bg-white rounded-2xl p-2">
-            <p className="font-medium mr-2">Copiar URL do site</p>
-            <FaCopy />
-          </div>
-        </div>}
+        <div className="flex gap-4">
+          <Link href={process.env.NEXT_PUBLIC_CHOOSE_PLAN} target="_blank" className="border border-[#649269] text-[#649269] px-4 py-2 rounded-3xl cursor-pointer transition-all hover:bg-white/80">Alterar Plano</Link>
+          <Link href={process.env.NEXT_PUBLIC_SUPPORT_URL} target="_blank" className=" text-[#649269] px-4 py-2 rounded-3xl cursor-pointer transition-all hover:bg-white/80">Suporte Técnico</Link>
+        </div>
       </div>
 
       {/* Escolha de Template */}

@@ -59,6 +59,9 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
   const textSizes = [{ value: "text-sm", label: 'Pequeno' }, { value: "text-md", label: 'Médio' }, { value: "text-lg", label: 'Grande' }, { value: "text-xl", label: 'Muito Grande' }, { value: "text-2xl", label: 'Maior ainda' }, { value: "text-3xl", label: 'Super Grande' }];
   const textAlignments = ["text-left", "text-center", "text-right"];
 
+  const [showModal, setShowModal] = useState(false);
+  const [elementToRemove, setElementToRemove] = useState<string | null>(null);
+
   // 🔹 Atualiza os elementos ao arrastar
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -141,6 +144,23 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
     setIcon(fileURL);
   };
 
+  const confirmRemoveElement = (id: string) => {
+    setElementToRemove(id);
+    setShowModal(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (elementToRemove) {
+      removeElement(elementToRemove);
+      setElementToRemove(null);
+      setShowModal(false);
+    }
+  };
+
+  const handleCancelRemove = () => {
+    setElementToRemove(null);
+    setShowModal(false);
+  };
 
   return (
     <div className="flex border-2 border-gray-200">
@@ -156,8 +176,8 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
 
           <div className="flex gap-4 justify-start w-full">
             {/* 🔹 Seletor do banner */}
-            <div className="flex flex-col items-center gap-1 bg-white w-64 rounded-lg overflow-hidden shadow-md shadow-gray-500">
-              <Image className="max-h-32 w-full" src={banner} alt="Banner" width={100} height={100} />
+            <div className="flex flex-col items-center bg-white w-64  min-h-56 rounded-lg shadow-md shadow-gray-500">
+              <Image className="w-full object-contain h-48 rounded-t-lg " src={banner} alt="Banner" width={100} height={100} />
               <label className="px-4 py-2 bg-[#5C9E31] text-white rounded-b-lg cursor-pointer w-full">
                 Selecionar Imagem do Banner
                 <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
@@ -165,8 +185,8 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
             </div>
 
             {/* 🔹 Seletor do ícone */}
-            <div className="flex flex-col items-center bg-white w-64 rounded-lg overflow-hidden shadow-md shadow-gray-500">
-              <Image className="h-full scale-150" src={icon} alt="Ícone" width={32} height={32} />
+            <div className="flex flex-col items-center  min-h-56 bg-white w-64 rounded-lg shadow-md shadow-gray-500">
+              <Image className="w-full object-contain rounded-t-lg h-48" src={icon} alt="Ícone" width={100} height={100 } />
               <label className="px-4 py-2 bg-[#5C9E31] text-white rounded-b-lg cursor-pointer w-full">
                 Selecionar Ícone
                 <input type="file" accept="image/*" className="hidden" onChange={handleIconChange} />
@@ -702,7 +722,7 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
 
                   {/* 🔹 Remover botão */}
                   <button
-                    onClick={() => removeElement(item.id)}
+                    onClick={() => confirmRemoveElement(item.id)}
                     className="text-sm text-red-500 hover:text-red-700 flex items-center justify-end w-full cursor-pointer my-4"
                   >
                     <DeleteOutlined />
@@ -813,7 +833,7 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
                 </div>
                 {planType !== 'premium' && <footer className="py-4 text-center bg-[#5C9E31] w-full flex items-center justify-center flex-col">
                   <p className="text-sm text-white">
-                    Página criada por <a href="https://linkiwi.com" target="_blank" className="underline font-bold">Linkiwi</a>
+                    Página criada por <a href={process.env.NEXT_PUBLIC_LINKIWI_URL_LANDING_PAGE} target="_blank" className="underline font-bold">Linkiwi</a>
                   </p>
                   <p className="text-sm text-white">
                     Todos os direitos reservados
@@ -825,6 +845,28 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
         </div>
 
       </div >
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-[#00000080] z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Confirmar Remoção</h2>
+            <p className="mb-4">Tem certeza de que deseja remover este elemento?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={handleCancelRemove}
+                className="cursor-pointer transition-all hover:scale-105 px-4 py-2 bg-gray-300 text-gray-700 rounded-md"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmRemove}
+                className="currsor-pointer transition-all hover:scale-105 px-4 py-2 bg-red-500 text-white rounded-md"
+              >
+                Remover
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div >
   );
 })
