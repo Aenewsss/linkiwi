@@ -2,12 +2,14 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-export default function SortableItem({ id, children }: { id: string; children: React.ReactNode }) {
+export default function SortableItem({ id, children, highlighted }: { id: string; children: React.ReactNode, highlighted: boolean }) {
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    borderColor: highlighted && 'green',
+    borderWidth: highlighted && 4
   };
 
   return (

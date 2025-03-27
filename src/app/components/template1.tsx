@@ -62,6 +62,8 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
   const [showModal, setShowModal] = useState(false);
   const [elementToRemove, setElementToRemove] = useState<string | null>(null);
 
+  const [highlightNewElement, setHighlightNewElement] = useState(false);
+
   // 🔹 Atualiza os elementos ao arrastar
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -96,6 +98,9 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
     }
 
     const newId = String(elements.length + 1);
+
+    setHighlightNewElement(true)
+    
     if (type === "link") {
       setElements([
         ...elements,
@@ -117,6 +122,12 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
         { id: newId, type, pixel: "", }
       ]);
     }
+
+    toast.success('Elemento adicionado!')
+
+    setTimeout(() => {
+      setHighlightNewElement(false)
+    }, 3000);
   };
 
   // 🔹 Remove um elemento
@@ -489,12 +500,12 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
             </button> */}
         </div>
 
-        <h2 className="text-gray-600 text-2xl font-semibold mt-10">Componentes</h2>
+        <h2 className="text-gray-600 text-2xl font-semibold mt-10">Elementos da página</h2>
         <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={elements} strategy={verticalListSortingStrategy}>
             <div className="flex flex-col gap-4">
-              {[...elements].reverse().map((item) => (
-                <SortableItem key={item.id} id={item.id}>
+              {[...elements].reverse().map((item, index) => (
+                <SortableItem highlighted={highlightNewElement && index == 0} key={item.id} id={item.id}>
                   {item.type === "link" && (
                     <div className="flex flex-col gap-4 py-4">
 
@@ -586,7 +597,7 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
 
                       {/* 🔹 Seletor de Ícone */}
                       <div className="mt-2">
-                        <div className="flex justify-between">
+                        <div className="flex gap-5 align-items-center">
                           <span className="text-md text-gray-600">Ícone</span>
                           {item.icon && <div className="flex items-center gap-4">
                             <label className="flex gap-1 items-center">
@@ -770,7 +781,7 @@ const TemplateMinimalist = forwardRef(({ publishSite, publishing }: { publishSit
 
                   <div className="w-full max-h-[200px] relative">
                     <Image id="top-banner" unoptimized className="w-full object-cover h-full" width={300} height={300} src={banner} alt="Top banner" />
-                    <Image id="top-icon" unoptimized className="absolute -bottom-7 left-1/2 -translate-x-1/2" width={60} height={60} src={icon} alt="Top icon" />
+                    <Image id="top-icon" unoptimized className="absolute -bottom-7 left-1/2 -translate-x-1/2 rounded-full object-cover w-16 h-16" width={60} height={60} src={icon} alt="Top icon" />
                   </div>
 
                   <div className="flex flex-col gap-4 px-4 ">

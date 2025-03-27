@@ -192,7 +192,9 @@ export default function Home() {
       const userRef = ref(realtimeDb, `users/${userId}`);
       const snapshot = await get(userRef);
 
-      const pageId = snapshot.exists() ? snapshot.val()?.latestPage : uuidv4(); // Se existir, usa o mesmo UUID, senão, cria um novo
+      const pageId = snapshot.val()?.latestPage || uuidv4(); // Se existir, usa o mesmo UUID, senão, cria um novo
+
+      console.log(pageId)
 
       // 📌 Salva o HTML no Firebase usando o UUID como identificador único
       await update(ref(realtimeDb, `publishedPages/${pageId}`), {
